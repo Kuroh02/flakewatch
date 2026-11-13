@@ -32,7 +32,7 @@ Before starting a phase, re-read the spec sections and plan sections it lists.
 
 - [x] **T-0.4** Maven parent POM: Java 25, Spring Boot 4.x BOM, pinned plugin versions, Maven Wrapper, modules `core` and `server`. Configure Spotless (formatting) and JaCoCo (coverage). `./mvnw verify` passes. — NFR-QUAL-001
 - [x] **T-0.5** `server`: a Spring Boot app with the webmvc, actuator, validation, security, JDBC and Flyway starters plus the PostgreSQL driver. Liveness health group without the database; readiness with it. `GET /api/v1/version` from build info. — NFR-OBS-003, NFR-OPS-001
-- [ ] **T-0.6** Tests first: `NoDbOnLivenessIT` (pause the database container → liveness `UP`, readiness `DOWN`). Then make it pass. — NFR-OBS-003
+- [x] **T-0.6** Tests first: `NoDbOnLivenessIT` (pause the database container → liveness `UP`, readiness `DOWN`). Then make it pass. — NFR-OBS-003
 - [ ] **T-0.7** `platform` package: `Clock` and `RandomSource` beans; a `MutableClock` for tests. First ArchUnit rules: `core` independence, the clock and randomness bans, no field injection. — NFR-QUAL-002
 - [ ] **T-0.8** Testcontainers base class: one shared PostgreSQL 17 container with `@ServiceConnection`, and a JUnit extension that truncates tables after each test. Flyway `V1` (users, projects, api_tokens) runs in an integration test.
 - [ ] **T-0.9** Structured JSON logging; an `X-Request-Id` filter that puts the ID in the MDC; a problem-details error handler skeleton. — NFR-OBS-001
