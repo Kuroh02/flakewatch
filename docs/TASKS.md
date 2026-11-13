@@ -26,7 +26,7 @@ Before starting a phase, re-read the spec sections and plan sections it lists.
 
 - [x] **T-0.1** Create the `flakewatch` GitHub repository. Add this docs pack, `LICENSE` (MIT), `.gitignore`, `.editorconfig` and `CODEOWNERS`.
 - [x] **T-0.2** Repository settings: protect `main` (pull requests required, linear history, no force pushes). Add `.github/dependabot.yml` for Maven, npm and GitHub Actions. Turn on secret scanning with push protection, and CodeQL default setup. — NFR-SEC-005
-- [ ] **T-0.3** Add a CI `docs` job running `node scripts/check-docs.mjs`, plus Redocly lint for `api/openapi.yaml`. — NFR-QUAL-003
+- [x] **T-0.3** Add a CI `docs` job running `node scripts/check-docs.mjs`, plus Redocly lint for `api/openapi.yaml`. — NFR-QUAL-003
 
 ### Walking skeleton
 
