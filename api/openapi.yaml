@@ -1,0 +1,1583 @@
+openapi: 3.0.3
+info:
+  title: Flakewatch API
+  version: 1.0.0
+  description: |
+    The HTTP contract for Flakewatch. This file is the source of truth
+    (Constitution, Article 5): change it first, then the code.
+
+    - CI pipelines upload JUnit XML with an **ingest token**.
+    - Test suites read the quarantine list with a **read token**.
+    - The dashboard uses a **browser session** (GitHub sign-in).
+    - Public projects can be read without signing in.
+
+    Errors use `application/problem+json` (RFC 9457) with an extra `code` field.
+    Requirement IDs from docs/SPEC.md are noted in each operation's description.
+  license:
+    name: MIT
+servers:
+  - url: /api/v1
+tags:
+  - name: ingestion
+    description: Uploading test results from CI
+  - name: projects
+  - name: tokens
+  - name: tests
+  - name: runs
+  - name: failures
+  - name: quarantine
+  - name: account
+  - name: meta
+
+paths:
+  /uploads:
+    post:
+      tags: [ingestion]
+      operationId: createUpload
+      summary: Upload JUnit XML reports for one CI job
+      description: |
+        Stores the files and queues background processing, all in one transaction.
+        Repeat uploads (same run, attempt and job key) are safe.
+        FR-ING-001, FR-ING-002, FR-ING-003, FR-ING-004, FR-ING-008, FR-ING-011.
+      security:
+        - ingestToken: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [metadata, files]
+              properties:
+                metadata:
+                  $ref: '#/components/schemas/UploadMetadata'
+                files:
+                  type: array
+                  minItems: 1
+                  maxItems: 20
+                  items:
+                    type: string
+                    format: binary
+            encoding:
+              metadata:
+                contentType: application/json
+              files:
+                contentType: application/xml, text/xml, application/gzip, application/octet-stream
+      responses:
+        '202':
+          description: Accepted. Processing happens in the background.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadAccepted'
+        '200':
+          description: Duplicate of an earlier upload with identical content. The original is returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadAccepted'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /uploads/{uploadId}:
+    get:
+      tags: [ingestion]
+      operationId: getUpload
+      summary: Get the processing status of an upload
+      description: FR-ING-005.
+      security:
+        - ingestToken: []
+        - session: []
+      parameters:
+        - $ref: '#/components/parameters/UploadId'
+      responses:
+        '200':
+          description: Current status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadStatus'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /me:
+    get:
+      tags: [account]
+      operationId: getMe
+      summary: The signed-in user
+      security:
+        - session: []
+      responses:
+        '200':
+          description: The current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Me'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /version:
+    get:
+      tags: [meta]
+      operationId: getVersion
+      summary: Build information (used by the deploy smoke test)
+      security:
+        - {}
+      responses:
+        '200':
+          description: Version info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Version'
+
+  /projects:
+    get:
+      tags: [projects]
+      operationId: listProjects
+      summary: List projects the caller can see
+      description: Public projects, plus the caller's own projects when signed in. FR-PRJ-004.
+      security:
+        - {}
+        - session: []
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: A page of projects
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectPage'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+    post:
+      tags: [projects]
+      operationId: createProject
+      summary: Create a project
+      description: FR-PRJ-002.
+      security:
+        - session: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectCreate'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /projects/{slug}:
+    parameters:
+      - $ref: '#/components/parameters/Slug'
+    get:
+      tags: [projects]
+      operationId: getProject
+      summary: Get a project
+      description: Private projects return 404 to anyone but the owner. FR-PRJ-004.
+      security:
+        - {}
+        - session: []
+      responses:
+        '200':
+          description: The project
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [projects]
+      operationId: updateProject
+      summary: Change project settings
+      description: FR-PRJ-006, FR-DET-011.
+      security:
+        - session: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectUpdate'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [projects]
+      operationId: deleteProject
+      summary: Delete a project and all its data
+      description: FR-PRJ-006.
+      security:
+        - session: []
+      responses:
+        '204':
+          description: Deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{slug}/summary:
+    parameters:
+      - $ref: '#/components/parameters/Slug'
+    get:
+      tags: [projects]
+      operationId: getProjectSummary
+      summary: Overview numbers for a project
+      description: FR-UI-001.
+      security:
+        - {}
+        - session: []
+      responses:
+        '200':
+          description: Summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectSummary'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{slug}/tokens:
+    parameters:
+      - $ref: '#/components/parameters/Slug'
+    get:
+      tags: [tokens]
+      operationId: listTokens
+      summary: List a project's tokens (prefixes only)
+      description: FR-PRJ-003.
+      security:
+        - session: []
+      responses:
+        '200':
+          description: Tokens
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenList'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [tokens]
+      operationId: createToken
+      summary: Create a token. The full value is returned only in this response.
+      description: FR-PRJ-003, NFR-SEC-001.
+      security:
+        - session: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenCreate'
+      responses:
+        '201':
+          description: Created
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                example: no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenCreated'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{slug}/tokens/{tokenId}:
+    parameters:
+      - $ref: '#/components/parameters/Slug'
+      - $ref: '#/components/parameters/TokenId'
+    delete:
+      tags: [tokens]
+      operationId: revokeToken
+      summary: Revoke a token
+      description: FR-PRJ-003.
+      security:
+        - session: []
+      responses:
+        '204':
+          description: Revoked
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{slug}/tests:
+    parameters:
+      - $ref: '#/components/parameters/Slug'
+    get:
+      tags: [tests]
+      operationId: listTests
+      summary: List test cases with their current status
+      description: FR-UI-002, FR-DET-012.
+      security:
+        - {}
+        - session: []
+      parameters:
+        - name: status
+          in: query
+          description: Filter by one or more statuses (comma-separated).
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/TestStatus'
+          style: form
+          explode: false
+        - name: q
+          in: query
+          description: Search in the test key (case-insensitive, substring).
+          schema:
+            type: string
+            maxLength: 200
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [impact, recent, name]
+            default: impact
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: A page of tests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestSummaryPage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /projects/{slug}/tests/{testId}:
+    parameters:
+      - $ref: '#/components/parameters/Slug'
+      - $ref: '#/components/parameters/TestId'
+    get:
+      tags: [tests]
+      operationId: getTest
+      summary: One test with status per variant, evidence and timeline
+      description: FR-UI-003, FR-DET-007.
+      security:
+        - {}
+        - session: []
+      responses:
+        '200':
+          description: Test detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{slug}/tests/{testId}/executions:
+    parameters:
+      - $ref: '#/components/parameters/Slug'
+      - $ref: '#/components/parameters/TestId'
+    get:
+      tags: [tests]
+      operationId: listExecutions
+      summary: Execution history of one test, newest first
+      description: FR-UI-003, FR-ING-010.
+      security:
+        - {}
+        - session: []
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: A page of executions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecutionPage'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{slug}/runs:
+    parameters:
+      - $ref: '#/components/parameters/Slug'
+    get:
+      tags: [runs]
+      operationId: listRuns
+      summary: CI runs, newest first
+      description: FR-UI-004.
+      security:
+        - {}
+        - session: []
+      parameters:
+        - name: branch
+          in: query
+          schema:
+            type: string
+            maxLength: 255
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: A page of runs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunPage'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{slug}/runs/{runId}:
+    parameters:
+      - $ref: '#/components/parameters/Slug'
+      - $ref: '#/components/parameters/RunId'
+    get:
+      tags: [runs]
+      operationId: getRun
+      summary: One run, with each failure labelled
+      description: FR-UI-004.
+      security:
+        - {}
+        - session: []
+      responses:
+        '200':
+          description: Run detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RunDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{slug}/failure-groups:
+    parameters:
+      - $ref: '#/components/parameters/Slug'
+    get:
+      tags: [failures]
+      operationId: listFailureGroups
+      summary: Failure groups, most recent first
+      description: FR-GRP-003, FR-UI-005.
+      security:
+        - {}
+        - session: []
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: A page of failure groups
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FailureGroupPage'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{slug}/failure-groups/{groupId}:
+    parameters:
+      - $ref: '#/components/parameters/Slug'
+      - $ref: '#/components/parameters/GroupId'
+    get:
+      tags: [failures]
+      operationId: getFailureGroup
+      summary: One failure group with the tests it affects
+      description: FR-GRP-003, FR-UI-005.
+      security:
+        - {}
+        - session: []
+      responses:
+        '200':
+          description: Failure group detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FailureGroupDetail'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /projects/{slug}/quarantine:
+    parameters:
+      - $ref: '#/components/parameters/Slug'
+    get:
+      tags: [quarantine]
+      operationId: getQuarantineList
+      summary: Active quarantine list (used by the JUnit and TestNG libraries)
+      description: |
+        Supports ETag caching: send `If-None-Match` to get `304` when nothing changed.
+        FR-QUA-002.
+      security:
+        - readToken: []
+        - session: []
+        - {}
+      parameters:
+        - name: If-None-Match
+          in: header
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The active list
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuarantineList'
+        '304':
+          description: Not modified
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    post:
+      tags: [quarantine]
+      operationId: createQuarantine
+      summary: Quarantine a test method
+      description: FR-QUA-001.
+      security:
+        - session: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuarantineCreate'
+      responses:
+        '201':
+          description: Quarantined
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuarantineEntry'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /projects/{slug}/quarantine/{quarantineId}:
+    parameters:
+      - $ref: '#/components/parameters/Slug'
+      - $ref: '#/components/parameters/QuarantineId'
+    delete:
+      tags: [quarantine]
+      operationId: releaseQuarantine
+      summary: Release a quarantined test
+      description: FR-QUA-001.
+      security:
+        - session: []
+      responses:
+        '204':
+          description: Released
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  securitySchemes:
+    ingestToken:
+      type: http
+      scheme: bearer
+      description: Project ingest token, starts with `fw_ing_`.
+    readToken:
+      type: http
+      scheme: bearer
+      description: Project read token, starts with `fw_read_`.
+    session:
+      type: apiKey
+      in: cookie
+      name: JSESSIONID
+      description: Browser session after GitHub sign-in. Writes also need the CSRF header.
+
+  parameters:
+    Slug:
+      name: slug
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$'
+    UploadId:
+      name: uploadId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+    TokenId:
+      name: tokenId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+    TestId:
+      name: testId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+    RunId:
+      name: runId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+    GroupId:
+      name: groupId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+    QuarantineId:
+      name: quarantineId
+      in: path
+      required: true
+      schema:
+        type: integer
+        format: int64
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 50
+    Cursor:
+      name: cursor
+      in: query
+      description: Opaque value from a previous page's `nextCursor`.
+      schema:
+        type: string
+        maxLength: 500
+
+  responses:
+    BadRequest:
+      description: The request is invalid. `errors` lists each problem.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Unauthorized:
+      description: Missing, invalid or revoked credentials.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Forbidden:
+      description: Authenticated, but not allowed (for example, wrong token scope).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    NotFound:
+      description: Doesn't exist, or the caller isn't allowed to know it exists.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Conflict:
+      description: |
+        Conflicts with existing data. Codes include `duplicate-upload-different-content`,
+        `run-metadata-mismatch`, `slug-taken` and `already-quarantined`.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    PayloadTooLarge:
+      description: A size limit was exceeded.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    TooManyRequests:
+      description: Rate limit exceeded.
+      headers:
+        Retry-After:
+          description: Seconds to wait before retrying.
+          schema:
+            type: integer
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+
+  schemas:
+    Problem:
+      type: object
+      required: [type, title, status, code]
+      properties:
+        type:
+          type: string
+          example: about:blank
+        title:
+          type: string
+          example: Upload conflicts with an earlier upload
+        status:
+          type: integer
+          example: 409
+        detail:
+          type: string
+        instance:
+          type: string
+        code:
+          type: string
+          example: duplicate-upload-different-content
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/FieldError'
+    FieldError:
+      type: object
+      required: [field, message]
+      properties:
+        field:
+          type: string
+          example: metadata.commitSha
+        message:
+          type: string
+          example: must be 7 to 64 lowercase hex characters
+
+    CiProvider:
+      type: string
+      enum: [GITHUB, JENKINS, GITLAB, OTHER]
+    UploadMetadata:
+      type: object
+      required: [commitSha, branch, runId]
+      additionalProperties: false
+      properties:
+        commitSha:
+          type: string
+          pattern: '^[0-9a-f]{7,64}$'
+        branch:
+          type: string
+          minLength: 1
+          maxLength: 255
+        provider:
+          allOf:
+            - $ref: '#/components/schemas/CiProvider'
+          default: OTHER
+        runId:
+          type: string
+          minLength: 1
+          maxLength: 100
+        runAttempt:
+          type: integer
+          minimum: 1
+          default: 1
+        jobKey:
+          type: string
+          minLength: 1
+          maxLength: 100
+          default: default
+        variant:
+          type: string
+          maxLength: 100
+          default: ''
+        pullRequest:
+          type: integer
+          minimum: 1
+          nullable: true
+        runStartedAt:
+          type: string
+          format: date-time
+          nullable: true
+        repositoryUrl:
+          type: string
+          format: uri
+          maxLength: 500
+          nullable: true
+    UploadState:
+      type: string
+      enum: [RECEIVED, PROCESSING, PROCESSED, FAILED]
+    UploadAccepted:
+      type: object
+      required: [uploadId, runId, status, statusUrl, runUrl, duplicate]
+      properties:
+        uploadId:
+          type: integer
+          format: int64
+        runId:
+          type: integer
+          format: int64
+        status:
+          $ref: '#/components/schemas/UploadState'
+        statusUrl:
+          type: string
+          example: /api/v1/uploads/42
+        runUrl:
+          type: string
+          description: Dashboard link to the run.
+          example: https://flakewatch.example.com/p/demo/runs/7
+        duplicate:
+          type: boolean
+    UploadSummary:
+      type: object
+      required: [tests, passed, failed, errored, skipped, retried]
+      properties:
+        tests:
+          type: integer
+        passed:
+          type: integer
+        failed:
+          type: integer
+        errored:
+          type: integer
+        skipped:
+          type: integer
+        retried:
+          type: integer
+          description: Tests that needed at least one retry.
+    ParseWarning:
+      type: object
+      required: [file, message]
+      properties:
+        file:
+          type: string
+        line:
+          type: integer
+          nullable: true
+        message:
+          type: string
+    UploadStatus:
+      type: object
+      required: [uploadId, runId, projectSlug, jobKey, variant, status, receivedAt, warnings]
+      properties:
+        uploadId:
+          type: integer
+          format: int64
+        runId:
+          type: integer
+          format: int64
+        projectSlug:
+          type: string
+        jobKey:
+          type: string
+        variant:
+          type: string
+        status:
+          $ref: '#/components/schemas/UploadState'
+        receivedAt:
+          type: string
+          format: date-time
+        processedAt:
+          type: string
+          format: date-time
+          nullable: true
+        summary:
+          allOf:
+            - $ref: '#/components/schemas/UploadSummary'
+          nullable: true
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/ParseWarning'
+        error:
+          type: string
+          nullable: true
+
+    Me:
+      type: object
+      required: [id, login]
+      properties:
+        id:
+          type: integer
+          format: int64
+        login:
+          type: string
+        displayName:
+          type: string
+          nullable: true
+        avatarUrl:
+          type: string
+          nullable: true
+    Version:
+      type: object
+      required: [version, commit, builtAt]
+      properties:
+        version:
+          type: string
+          example: 1.0.0
+        commit:
+          type: string
+          example: 3f2a9c1d
+        builtAt:
+          type: string
+          format: date-time
+
+    Visibility:
+      type: string
+      enum: [PUBLIC, PRIVATE]
+    TestStatus:
+      type: string
+      enum: [STABLE, FLAKY, SUSPECTED, FAILING, BROKEN, NOT_ENOUGH_DATA]
+    DetectionSettings:
+      type: object
+      required: [windowDays, suspectedRecoveries, brokenStreak]
+      properties:
+        windowDays:
+          type: integer
+          minimum: 7
+          maximum: 60
+          default: 14
+        suspectedRecoveries:
+          type: integer
+          minimum: 2
+          maximum: 5
+          default: 2
+        brokenStreak:
+          type: integer
+          minimum: 2
+          maximum: 10
+          default: 3
+    Project:
+      type: object
+      required: [slug, name, visibility, defaultBranch, settings, createdAt, viewerIsOwner]
+      properties:
+        slug:
+          type: string
+        name:
+          type: string
+        visibility:
+          $ref: '#/components/schemas/Visibility'
+        defaultBranch:
+          type: string
+        owner:
+          type: string
+          nullable: true
+          description: Owner's GitHub login. Null for bootstrap projects.
+        settings:
+          $ref: '#/components/schemas/DetectionSettings'
+        createdAt:
+          type: string
+          format: date-time
+        viewerIsOwner:
+          type: boolean
+    ProjectCreate:
+      type: object
+      required: [slug, name]
+      additionalProperties: false
+      properties:
+        slug:
+          type: string
+          pattern: '^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$'
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        visibility:
+          allOf:
+            - $ref: '#/components/schemas/Visibility'
+          default: PRIVATE
+        defaultBranch:
+          type: string
+          minLength: 1
+          maxLength: 255
+          default: main
+    ProjectUpdate:
+      type: object
+      minProperties: 1
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        visibility:
+          $ref: '#/components/schemas/Visibility'
+        defaultBranch:
+          type: string
+          minLength: 1
+          maxLength: 255
+        settings:
+          $ref: '#/components/schemas/DetectionSettings'
+    ProjectPage:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Project'
+        nextCursor:
+          type: string
+          nullable: true
+    StatusCounts:
+      type: object
+      required: [STABLE, FLAKY, SUSPECTED, FAILING, BROKEN, NOT_ENOUGH_DATA]
+      properties:
+        STABLE:
+          type: integer
+        FLAKY:
+          type: integer
+        SUSPECTED:
+          type: integer
+        FAILING:
+          type: integer
+        BROKEN:
+          type: integer
+        NOT_ENOUGH_DATA:
+          type: integer
+    TrendPoint:
+      type: object
+      required: [day, flaky, suspected, broken]
+      properties:
+        day:
+          type: string
+          format: date
+        flaky:
+          type: integer
+        suspected:
+          type: integer
+        broken:
+          type: integer
+    ProjectSummary:
+      type: object
+      required: [totalTests, countsByStatus, flakyTrend, recentRuns]
+      properties:
+        totalTests:
+          type: integer
+        countsByStatus:
+          $ref: '#/components/schemas/StatusCounts'
+        flakyTrend:
+          type: array
+          description: One point per day, last 30 days.
+          items:
+            $ref: '#/components/schemas/TrendPoint'
+        recentRuns:
+          type: array
+          maxItems: 10
+          items:
+            $ref: '#/components/schemas/RunSummary'
+
+    TokenScope:
+      type: string
+      enum: [INGEST, READ]
+    Token:
+      type: object
+      required: [id, name, scope, prefix, createdAt]
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        scope:
+          $ref: '#/components/schemas/TokenScope'
+        prefix:
+          type: string
+          example: fw_ing_7Hq2
+        createdAt:
+          type: string
+          format: date-time
+        lastUsedAt:
+          type: string
+          format: date-time
+          nullable: true
+        revokedAt:
+          type: string
+          format: date-time
+          nullable: true
+    TokenCreate:
+      type: object
+      required: [name, scope]
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 60
+        scope:
+          $ref: '#/components/schemas/TokenScope'
+    TokenCreated:
+      allOf:
+        - $ref: '#/components/schemas/Token'
+        - type: object
+          required: [token]
+          properties:
+            token:
+              type: string
+              description: The full token. Shown only in this response.
+    TokenList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Token'
+
+    TestSummary:
+      type: object
+      required: [id, testKey, suite, name, status, statusSince, impact, flipRate, quarantined]
+      properties:
+        id:
+          type: integer
+          format: int64
+        testKey:
+          type: string
+        suite:
+          type: string
+        name:
+          type: string
+        status:
+          $ref: '#/components/schemas/TestStatus'
+        statusSince:
+          type: string
+          format: date-time
+        impact:
+          type: integer
+        flipRate:
+          type: number
+          minimum: 0
+          maximum: 1
+        lastFailureAt:
+          type: string
+          format: date-time
+          nullable: true
+        quarantined:
+          type: boolean
+    TestSummaryPage:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestSummary'
+        nextCursor:
+          type: string
+          nullable: true
+    EvidenceKind:
+      type: string
+      enum: [RETRY_PASS, SAME_COMMIT_MIXED]
+    Evidence:
+      type: object
+      required: [kind, runIds, commitSha, variant, observedAt, explanation]
+      properties:
+        kind:
+          $ref: '#/components/schemas/EvidenceKind'
+        runIds:
+          type: array
+          minItems: 1
+          items:
+            type: integer
+            format: int64
+        commitSha:
+          type: string
+        variant:
+          type: string
+        observedAt:
+          type: string
+          format: date-time
+        explanation:
+          type: string
+          example: Failed, then passed on retry 1 in run 9876543210 (commit 3f2a9c1)
+    VariantStatus:
+      type: object
+      required: [variant, status]
+      properties:
+        variant:
+          type: string
+        status:
+          $ref: '#/components/schemas/TestStatus'
+    TimelinePoint:
+      type: object
+      required: [runId, executedAt, outcome, commitSha, branch, variant]
+      properties:
+        runId:
+          type: integer
+          format: int64
+        executedAt:
+          type: string
+          format: date-time
+        outcome:
+          type: string
+          enum: [PASSED, FAILED, SKIPPED, PASSED_ON_RETRY]
+        commitSha:
+          type: string
+        branch:
+          type: string
+        variant:
+          type: string
+    DurationPoint:
+      type: object
+      required: [day, averageMs]
+      properties:
+        day:
+          type: string
+          format: date
+        averageMs:
+          type: integer
+    FailureGroupRef:
+      type: object
+      required: [id, failureType, normalizedMessage, occurrences]
+      properties:
+        id:
+          type: integer
+          format: int64
+        failureType:
+          type: string
+        normalizedMessage:
+          type: string
+        occurrences:
+          type: integer
+          format: int64
+    TestDetail:
+      allOf:
+        - $ref: '#/components/schemas/TestSummary'
+        - type: object
+          required: [methodKey, variants, evidence, timeline, failureGroups, durationTrend, readyToRelease]
+          properties:
+            methodKey:
+              type: string
+            file:
+              type: string
+              nullable: true
+            variants:
+              type: array
+              items:
+                $ref: '#/components/schemas/VariantStatus'
+            evidence:
+              type: array
+              maxItems: 5
+              items:
+                $ref: '#/components/schemas/Evidence'
+            timeline:
+              type: array
+              maxItems: 50
+              description: Final outcomes, oldest first.
+              items:
+                $ref: '#/components/schemas/TimelinePoint'
+            failureGroups:
+              type: array
+              items:
+                $ref: '#/components/schemas/FailureGroupRef'
+            durationTrend:
+              type: array
+              items:
+                $ref: '#/components/schemas/DurationPoint'
+            quarantine:
+              allOf:
+                - $ref: '#/components/schemas/QuarantineEntry'
+              nullable: true
+            readyToRelease:
+              type: boolean
+    ExecutionStatus:
+      type: string
+      enum: [PASSED, FAILED, ERRORED, SKIPPED]
+    Execution:
+      type: object
+      required: [id, runId, uploadId, executionIndex, isFinal, status, quarantined, durationMs, executedAt, commitSha, branch, variant]
+      properties:
+        id:
+          type: integer
+          format: int64
+        runId:
+          type: integer
+          format: int64
+        uploadId:
+          type: integer
+          format: int64
+        executionIndex:
+          type: integer
+        isFinal:
+          type: boolean
+        status:
+          $ref: '#/components/schemas/ExecutionStatus'
+        quarantined:
+          type: boolean
+        durationMs:
+          type: integer
+        executedAt:
+          type: string
+          format: date-time
+        commitSha:
+          type: string
+        branch:
+          type: string
+        variant:
+          type: string
+        failureGroupId:
+          type: integer
+          format: int64
+          nullable: true
+        failureType:
+          type: string
+          nullable: true
+        failureMessage:
+          type: string
+          nullable: true
+        stackTrace:
+          type: string
+          nullable: true
+    ExecutionPage:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Execution'
+        nextCursor:
+          type: string
+          nullable: true
+
+    RunSummary:
+      type: object
+      required: [id, provider, externalRunId, attempt, commitSha, branch, startedAt, totals, failedTests]
+      properties:
+        id:
+          type: integer
+          format: int64
+        provider:
+          $ref: '#/components/schemas/CiProvider'
+        externalRunId:
+          type: string
+        attempt:
+          type: integer
+        commitSha:
+          type: string
+        branch:
+          type: string
+        pullRequest:
+          type: integer
+          nullable: true
+        startedAt:
+          type: string
+          format: date-time
+        totals:
+          $ref: '#/components/schemas/UploadSummary'
+        failedTests:
+          type: integer
+    RunPage:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RunSummary'
+        nextCursor:
+          type: string
+          nullable: true
+    UploadRef:
+      type: object
+      required: [uploadId, jobKey, variant, status]
+      properties:
+        uploadId:
+          type: integer
+          format: int64
+        jobKey:
+          type: string
+        variant:
+          type: string
+        status:
+          $ref: '#/components/schemas/UploadState'
+    RunFailureLabel:
+      type: string
+      enum: [KNOWN_FLAKY, NEW_FAILURE, BROKEN, PASSED_ON_RETRY, QUARANTINED]
+    RunFailure:
+      type: object
+      required: [testId, testKey, label, status, variant, jobKey]
+      properties:
+        testId:
+          type: integer
+          format: int64
+        testKey:
+          type: string
+        label:
+          $ref: '#/components/schemas/RunFailureLabel'
+        status:
+          $ref: '#/components/schemas/TestStatus'
+        failureGroupId:
+          type: integer
+          format: int64
+          nullable: true
+        message:
+          type: string
+          nullable: true
+        variant:
+          type: string
+        jobKey:
+          type: string
+    RunDetail:
+      allOf:
+        - $ref: '#/components/schemas/RunSummary'
+        - type: object
+          required: [uploads, failures]
+          properties:
+            repositoryUrl:
+              type: string
+              nullable: true
+            uploads:
+              type: array
+              items:
+                $ref: '#/components/schemas/UploadRef'
+            failures:
+              type: array
+              items:
+                $ref: '#/components/schemas/RunFailure'
+
+    FailureGroup:
+      type: object
+      required: [id, failureType, normalizedMessage, sampleMessage, topFrames, firstSeenAt, lastSeenAt, occurrences, affectedTests]
+      properties:
+        id:
+          type: integer
+          format: int64
+        failureType:
+          type: string
+        normalizedMessage:
+          type: string
+        sampleMessage:
+          type: string
+        topFrames:
+          type: array
+          items:
+            type: string
+        firstSeenAt:
+          type: string
+          format: date-time
+        lastSeenAt:
+          type: string
+          format: date-time
+        occurrences:
+          type: integer
+          format: int64
+        affectedTests:
+          type: integer
+    FailureGroupPage:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/FailureGroup'
+        nextCursor:
+          type: string
+          nullable: true
+    FailureGroupDetail:
+      allOf:
+        - $ref: '#/components/schemas/FailureGroup'
+        - type: object
+          required: [tests]
+          properties:
+            tests:
+              type: array
+              maxItems: 100
+              items:
+                $ref: '#/components/schemas/TestSummary'
+
+    QuarantineEntry:
+      type: object
+      required: [id, methodKey, reason, createdAt, readyToRelease]
+      properties:
+        id:
+          type: integer
+          format: int64
+        methodKey:
+          type: string
+          example: com.shop.CartTest#addsItem
+        reason:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: string
+          nullable: true
+        readyToRelease:
+          type: boolean
+    QuarantineCreate:
+      type: object
+      required: [methodKey, reason]
+      additionalProperties: false
+      properties:
+        methodKey:
+          type: string
+          minLength: 3
+          maxLength: 2000
+        reason:
+          type: string
+          minLength: 3
+          maxLength: 500
+    QuarantineList:
+      type: object
+      required: [projectSlug, items]
+      properties:
+        projectSlug:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuarantineEntry'
