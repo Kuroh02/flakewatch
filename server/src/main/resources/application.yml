@@ -3,6 +3,9 @@ spring:
     name: flakewatch
   flyway:
     enabled: false
+  mvc:
+    problemdetails:
+      enabled: true
 
 management:
   endpoints:
@@ -18,3 +21,13 @@ management:
           include: livenessState
         readiness:
           include: readinessState,db
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+logging:
+  structured:
+    format:
+      console: ecs
