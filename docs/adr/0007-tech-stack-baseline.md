@@ -21,7 +21,10 @@ The stack should be current for 2026–27 software engineering roles, match the 
 
 ## Spike S-5 result (PIT with JUnit 6)
 
-*To be filled in during Phase 0.* Fallback: run `core`'s tests on JUnit Jupiter 5.14, which is possible because `core` has no Spring dependency.
+Executed in Phase 0 (Task T-0.18):
+1. **Bytecode compatibility:** PIT 1.17.4 uses an internal ASM engine that does not yet recognize Java 25 bytecode (major version 69, failing with `Unsupported class file major version 69`). Compiling `core` with Java 21 bytecode compatibility (`<maven.compiler.release>21</maven.compiler.release>`) allows PIT to parse and mutate class files while running smoothly under the Java 25 JVM runtime.
+2. **IPC socket communication:** PIT's minion process connects back to the Maven plugin process via a local TCP socket (`127.0.0.1`). In constrained sandbox environments, running the mutation coverage task with localhost socket permissions is required.
+3. **JUnit Platform alignment:** By aligning JUnit Platform dependencies transitively via the parent POM and using `pitest-junit5-plugin:1.2.2`, PIT successfully discovers Jupiter test units, generates mutations, and kills 100% of mutations on the test suite (`TextHelperTest`).
 
 ## Consequences
 

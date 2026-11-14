@@ -14,11 +14,21 @@
   <name>flakewatch-core</name>
   <description>Pure-Java functional core: parsing, detection, fingerprints, test keys</description>
 
+  <properties>
+    <maven.compiler.release>21</maven.compiler.release>
+    <argLine>-XX:+EnableDynamicAgentLoading</argLine>
+  </properties>
+
   <dependencies>
     <!-- Test dependencies -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.platform</groupId>
+      <artifactId>junit-platform-launcher</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -40,6 +50,27 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.pitest</groupId>
+        <artifactId>pitest-maven</artifactId>
+        <version>${pitest.version}</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.pitest</groupId>
+            <artifactId>pitest-junit5-plugin</artifactId>
+            <version>1.2.2</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <argLine>-XX:+EnableDynamicAgentLoading</argLine>
+          <targetClasses>
+            <param>io.github.chakrabartyaditi2002.flakewatch.*</param>
+          </targetClasses>
+          <targetTests>
+            <param>io.github.chakrabartyaditi2002.flakewatch.*</param>
+          </targetTests>
+        </configuration>
       </plugin>
     </plugins>
   </build>

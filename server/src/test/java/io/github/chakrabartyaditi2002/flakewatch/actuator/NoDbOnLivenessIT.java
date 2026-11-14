@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.util.logging.Logger;
 import javax.sql.DataSource;
+import io.github.chakrabartyaditi2002.flakewatch.FlakewatchApplication;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +26,7 @@ import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 
-@SpringBootTest(properties = {"spring.flyway.enabled=false"})
+@SpringBootTest(classes = FlakewatchApplication.class, properties = {"spring.flyway.enabled=false"})
 @Import(NoDbOnLivenessIT.StubDatabaseConfig.class)
 @TestExecutionListeners(
         listeners = {DependencyInjectionTestExecutionListener.class, DirtiesContextTestExecutionListener.class})

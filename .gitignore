@@ -48,6 +48,7 @@ perf/results/
 # IDE & Editor files
 .idea/
 *.iml
+.vscode/
 *.iws
 *.ipr
 .vscode/*
