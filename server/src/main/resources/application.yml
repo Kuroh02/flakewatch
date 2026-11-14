@@ -6,6 +6,19 @@ spring:
   mvc:
     problemdetails:
       enabled: true
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 0
+      idle-timeout: 60000
+
+server:
+  tomcat:
+    threads:
+      max: 20
 
 management:
   endpoints:
@@ -26,7 +39,17 @@ management:
 spring:
   config:
     activate:
+      on-profile: local
+  flyway:
+    enabled: true
+
+---
+spring:
+  config:
+    activate:
       on-profile: prod
+  flyway:
+    enabled: true
 logging:
   structured:
     format:
