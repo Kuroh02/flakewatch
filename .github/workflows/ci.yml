@@ -31,3 +31,69 @@ jobs:
 
       - name: Lint OpenAPI contract
         run: npx --yes @redocly/cli lint api/openapi.yaml
+
+  java:
+    name: Java Backend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Temurin JDK 25
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # v4.7.0
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Run Maven verify
+        run: ./mvnw -B verify
+
+  web:
+    name: Web Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm --prefix web ci
+
+      - name: Lint
+        run: npm --prefix web run lint
+
+      - name: Test
+        run: npm --prefix web test
+
+      - name: Build
+        run: npm --prefix web run build
+
+  image:
+    name: Container Image & Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+
+      - name: Build Docker image
+        run: docker build -t flakewatch:${{ github.sha }} .
+
+      - name: Run Trivy vulnerability scan
+        uses: aquasecurity/trivy-action@18f2510ee396bbf400402947b394f2dd8c87dbb0 # v0.29.0
+        with:
+          image-ref: flakewatch:${{ github.sha }}
+          format: table
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL'

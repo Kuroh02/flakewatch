@@ -38,7 +38,7 @@ Before starting a phase, re-read the spec sections and plan sections it lists.
 - [x] **T-0.9** Structured JSON logging; an `X-Request-Id` filter that puts the ID in the MDC; a problem-details error handler skeleton. — NFR-OBS-001
 - [x] **T-0.10** `web/`: Vite + React + TypeScript (strict), ESLint, Prettier, Vitest. One placeholder page that shows `/api/v1/version`. Vite dev-server proxy for `/api`.
 - [x] **T-0.11** Multi-stage `Dockerfile` (non-root, layered jar, `HEALTHCHECK`), `compose.yaml` (app + PostgreSQL 17) and `.env.example`. Check that the README quickstart works from a fresh clone. — NFR-OPS-001
-- [ ] **T-0.12** `ci.yml` with jobs `docs`, `java`, `web` and `image` (build + Trivy scan). Add caching, minimal `permissions:`, actions pinned by SHA, and cancel-in-progress for the same branch. — NFR-SEC-005, NFR-OPS-002
+- [x] **T-0.12** `ci.yml` with jobs `docs`, `java`, `web` and `image` (build + Trivy scan). Add caching, minimal `permissions:`, actions pinned by SHA, and cancel-in-progress for the same branch. — NFR-SEC-005, NFR-OPS-002
 - [ ] **T-0.13** Production: create the Neon project and the Render service (PLAN §21.3). `deploy.yml`: push `ghcr.io/<you>/flakewatch:<sha>` → trigger Render → wait until `/api/v1/version` returns the SHA → smoke test → roll back to the previous SHA on failure. — NFR-OPS-002
 
 ### Contract and spikes
