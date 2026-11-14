@@ -1,6 +1,6 @@
 # ADR-0005: In-house property-testing helper instead of jqwik
 
-**Status:** Accepted (confirm in spike S-2) · **Date:** 2026-11-13
+**Status:** Accepted (confirmed in spike S-2) · **Date:** 2026-11-14
 
 ## Context
 
@@ -27,6 +27,17 @@ Write a small **`Props` helper** (about 200 lines) on plain JUnit 6, in `core`'s
 - ➕ A small, understandable piece of testing infrastructure, which is a good engineering talking point.
 - ➖ Less powerful shrinking than a mature library: only list shrinking; other shapes print as generated. Acceptable, because our inputs are mostly lists (histories, executions).
 - ➖ The helper is ours to maintain. Kept deliberately small.
+
+## Outcome of Spike S-2
+
+Confirmed in Spike S-2 (Task T-0.16):
+- Implemented `Generator`, `Gens`, `Props`, and `PropertyAssertionError` in `core` test sources (~200 lines).
+- `PropsTest` verified:
+  1. Identical generation sequences across runs given the same seed.
+  2. Execution of property tests with configurable `-Dprops.cases`.
+  3. Seed logging and exact failure replay via `-Dprops.seed=<seed>`.
+  4. List shrinking-lite successfully isolates the minimal failing subset.
+- Result: Helper is accepted and established for all property tests in Flakewatch.
 
 ## Alternatives considered
 
