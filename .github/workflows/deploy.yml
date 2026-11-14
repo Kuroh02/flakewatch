@@ -1,0 +1,105 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+  issues: write
+
+jobs:
+  deploy:
+    name: Deploy to Production (Render)
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Downcase repository name
+        id: repo_name
+        run: echo "IMAGE_NAME=ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push image
+        uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # v6.15.0
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.repo_name.outputs.IMAGE_NAME }}:${{ github.sha }}
+            ${{ steps.repo_name.outputs.IMAGE_NAME }}:latest
+
+      - name: Deploy to Render
+        id: deploy
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+          RENDER_APP_URL: ${{ secrets.RENDER_APP_URL }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK" ]; then
+            echo "RENDER_DEPLOY_HOOK secret is not set; skipping live trigger."
+            exit 0
+          fi
+
+          echo "Triggering Render deploy hook..."
+          curl -fsS -X POST "$RENDER_DEPLOY_HOOK"
+
+          if [ -z "$RENDER_APP_URL" ]; then
+            echo "RENDER_APP_URL secret is not set; skipping health polling."
+            exit 0
+          fi
+
+          echo "Polling $RENDER_APP_URL/api/v1/version for commit ${{ github.sha }} (up to 5m)..."
+          SUCCESS=false
+          for i in $(seq 1 30); do
+            RESPONSE=$(curl -fsS "$RENDER_APP_URL/api/v1/version" 2>/dev/null || true)
+            if echo "$RESPONSE" | grep -q "${{ github.sha }}"; then
+              echo "Deployment succeeded! Server returned version with commit ${{ github.sha }}."
+              SUCCESS=true
+              break
+            fi
+            echo "Attempt $i: waiting for deployment to update (sleeping 10s)..."
+            sleep 10
+          done
+
+          if [ "$SUCCESS" != "true" ]; then
+            echo "Deployment timed out or failed to return expected SHA ${{ github.sha }}."
+            exit 1
+          fi
+
+          echo "Running smoke test..."
+          chmod +x deploy/smoke.sh
+          ./deploy/smoke.sh "$RENDER_APP_URL" "${{ github.sha }}"
+
+      - name: Rollback on deployment failure
+        if: failure() && steps.deploy.outcome == 'failure'
+        env:
+          PREVIOUS_SHA: ${{ vars.PREVIOUS_STABLE_SHA }}
+          RENDER_ROLLBACK_HOOK: ${{ secrets.RENDER_ROLLBACK_HOOK }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Deployment of ${{ github.sha }} failed. Triggering rollback..."
+          if [ -n "$RENDER_ROLLBACK_HOOK" ]; then
+            curl -fsS -X POST "$RENDER_ROLLBACK_HOOK" || true
+          fi
+          gh issue create \
+            --title "Deploy failed for ${{ github.sha }} (rolled back)" \
+            --body "Automated deploy workflow failed after merging to main. Rolled back to previous version ($PREVIOUS_SHA). Check workflow run logs for details." || true
