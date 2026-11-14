@@ -21,6 +21,7 @@ pnpm-debug.log*
 # Web build output
 web/dist/
 web/.vite/
+*.tsbuildinfo
 
 # Test coverage & reports
 coverage/
