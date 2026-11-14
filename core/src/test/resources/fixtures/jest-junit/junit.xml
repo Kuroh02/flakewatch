@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="6" failures="3" errors="0" time="0.958">
+  <testsuite name="Sample Jest Suite" errors="0" failures="3" skipped="1" timestamp="2026-11-14T05:42:01" time="0.811" tests="6">
+    <testcase classname="Sample Jest Suite passing test" name="Sample Jest Suite passing test" time="0.003">
+    </testcase>
+    <testcase classname="Sample Jest Suite failing test" name="Sample Jest Suite failing test" time="0.001">
+      <failure>Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: false
+Received: true
+    at Object.toBe (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\sample.test.js:7:18)
+    at Promise.then.completed (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-circus\build\run.js:316:40)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at _runTest (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Sample Jest Suite erroring test" name="Sample Jest Suite erroring test" time="0">
+      <failure>Error: Unexpected runtime exception
+    at Object.&lt;anonymous&gt; (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\sample.test.js:11:11)
+    at Promise.then.completed (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-circus\build\run.js:316:40)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at _runTest (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname="Sample Jest Suite skipped test" name="Sample Jest Suite skipped test" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Sample Jest Suite parameterized test with input alpha" name="Sample Jest Suite parameterized test with input alpha" time="0">
+    </testcase>
+    <testcase classname="Sample Jest Suite parameterized test with input beta" name="Sample Jest Suite parameterized test with input beta" time="0">
+      <failure>Error: Failure on beta
+    at C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\sample.test.js:23:13
+    at Object.&lt;anonymous&gt; (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-each\build\bind.js:81:13)
+    at Promise.then.completed (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-circus\build\utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-circus\build\utils.js:231:10)
+    at _callCircusTest (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-circus\build\run.js:316:40)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at _runTest (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-circus\build\run.js:252:3)
+    at _runTestsForDescribeBlock (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-circus\build\run.js:126:9)
+    at _runTestsForDescribeBlock (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-circus\build\run.js:121:9)
+    at run (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-circus\build\run.js:71:3)
+    at runAndTransformResultsToJestFormat (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+    at jestAdapter (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+    at runTestInternal (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-runner\build\runTest.js:367:16)
+    at runTest (C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\jest-junit\node_modules\jest-runner\build\runTest.js:444:34)</failure>
+    </testcase>
+  </testsuite>
+</testsuites>

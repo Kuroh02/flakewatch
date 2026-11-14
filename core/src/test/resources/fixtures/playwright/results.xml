@@ -1,0 +1,117 @@
+<testsuites id="" name="" tests="6" failures="2" skipped="1" errors="0" time="3.247336">
+<testsuite name="sample.spec.js" timestamp="2026-11-14T05:42:59.744Z" hostname="" tests="6" failures="2" skipped="1" time="0.061" errors="0">
+<testcase name="passing test" classname="sample.spec.js" time="0.007">
+</testcase>
+<testcase name="failing test" classname="sample.spec.js" time="0.015">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\sample-failing-test\error-context.md]]
+
+[[ATTACHMENT|..\test-results\sample-failing-test-retry1\error-context.md]]
+]]>
+</system-out>
+<failure message="expect(received).toBe(expected) // Object.is equality" type="expect.toBe">
+<![CDATA[  sample.spec.js:7:1 › failing test ────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: false
+    Received: true
+
+       6 |
+       7 | test('failing test', async () => {
+    >  8 |   expect(true).toBe(false);
+         |                ^
+       9 | });
+      10 |
+      11 | test('flaky test with retry', async ({}, testInfo) => {
+        at C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\playwright\tests\sample.spec.js:8:16
+
+    Error Context: ..\test-results\sample-failing-test\error-context.md
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: false
+    Received: true
+
+       6 |
+       7 | test('failing test', async () => {
+    >  8 |   expect(true).toBe(false);
+         |                ^
+       9 | });
+      10 |
+      11 | test('flaky test with retry', async ({}, testInfo) => {
+        at C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\playwright\tests\sample.spec.js:8:16
+
+    Error Context: ..\test-results\sample-failing-test-retry1\error-context.md
+]]>
+</failure>
+</testcase>
+<testcase name="flaky test with retry" classname="sample.spec.js" time="0.019">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\sample-flaky-test-with-retry\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="skipped test" classname="sample.spec.js">
+<properties>
+<property name="skip" value="">
+</property>
+</properties>
+<skipped>
+</skipped>
+</testcase>
+<testcase name="parameterized test for alpha" classname="sample.spec.js" time="0.002">
+</testcase>
+<testcase name="parameterized test for beta" classname="sample.spec.js" time="0.018">
+<system-out>
+<![CDATA[
+[[ATTACHMENT|..\test-results\sample-parameterized-test-for-beta\error-context.md]]
+
+[[ATTACHMENT|..\test-results\sample-parameterized-test-for-beta-retry1\error-context.md]]
+]]>
+</system-out>
+<failure message="expect(received).toBe(expected) // Object.is equality" type="expect.toBe">
+<![CDATA[  sample.spec.js:24:3 › parameterized test for beta ────────────────────────────────────────────────
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: "gamma"
+    Received: "beta"
+
+      24 |   test(`parameterized test for ${param}`, async () => {
+      25 |     if (param === 'beta') {
+    > 26 |       expect(param).toBe('gamma');
+         |                     ^
+      27 |     } else {
+      28 |       expect(param).toBe('alpha');
+      29 |     }
+        at C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\playwright\tests\sample.spec.js:26:21
+
+    Error Context: ..\test-results\sample-parameterized-test-for-beta\error-context.md
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: "gamma"
+    Received: "beta"
+
+      24 |   test(`parameterized test for ${param}`, async () => {
+      25 |     if (param === 'beta') {
+    > 26 |       expect(param).toBe('gamma');
+         |                     ^
+      27 |     } else {
+      28 |       expect(param).toBe('alpha');
+      29 |     }
+        at C:\Users\ADMIN\OneDrive\Documents\Rocket Projects\flakewatch\tools\fixture-gen\playwright\tests\sample.spec.js:26:21
+
+    Error Context: ..\test-results\sample-parameterized-test-for-beta-retry1\error-context.md
+]]>
+</failure>
+</testcase>
+</testsuite>
+</testsuites>

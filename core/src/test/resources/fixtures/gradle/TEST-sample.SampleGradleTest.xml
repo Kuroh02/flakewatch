@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="sample.SampleGradleTest" tests="12" skipped="1" failures="8" errors="0" timestamp="2026-11-14T08:21:40.325Z" hostname="DESKTOP-JCD0ETQ" time="8.033">
+  <properties/>
+  <testcase name="testFailing()" classname="sample.SampleGradleTest" time="0.29">
+    <failure message="org.opentest4j.AssertionFailedError: Assertion failed: expected true but was false" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: Assertion failed: expected true but was false
+	at app//org.junit.jupiter.api.AssertionUtils.fail(AssertionUtils.java:42)
+	at app//org.junit.jupiter.api.Assertions.fail(Assertions.java:143)
+	at app//sample.SampleGradleTest.testFailing(SampleGradleTest.java:22)
+</failure>
+  </testcase>
+  <testcase name="testFlaky()" classname="sample.SampleGradleTest" time="0.026">
+    <failure message="org.opentest4j.AssertionFailedError: Flaky failure on attempt 1" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: Flaky failure on attempt 1
+	at app//org.junit.jupiter.api.AssertionUtils.fail(AssertionUtils.java:42)
+	at app//org.junit.jupiter.api.Assertions.fail(Assertions.java:143)
+	at app//sample.SampleGradleTest.testFlaky(SampleGradleTest.java:39)
+</failure>
+  </testcase>
+  <testcase name="testPassing()" classname="sample.SampleGradleTest" time="0.013"/>
+  <testcase name="[1] &quot;alpha&quot;" classname="sample.SampleGradleTest" time="0.065"/>
+  <testcase name="[2] &quot;beta&quot;" classname="sample.SampleGradleTest" time="0.011">
+    <failure message="org.opentest4j.AssertionFailedError: Parameterized failure for beta" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: Parameterized failure for beta
+	at app//org.junit.jupiter.api.AssertionUtils.fail(AssertionUtils.java:42)
+	at app//org.junit.jupiter.api.Assertions.fail(Assertions.java:143)
+	at app//sample.SampleGradleTest.testParameterized(SampleGradleTest.java:47)
+</failure>
+  </testcase>
+  <testcase name="testSkipped()" classname="sample.SampleGradleTest" time="0.002">
+    <skipped/>
+  </testcase>
+  <testcase name="testErroring()" classname="sample.SampleGradleTest" time="0.006">
+    <failure message="java.lang.RuntimeException: Unexpected runtime error in test" type="java.lang.RuntimeException">java.lang.RuntimeException: Unexpected runtime error in test
+	at sample.SampleGradleTest.testErroring(SampleGradleTest.java:27)
+</failure>
+  </testcase>
+  <testcase name="testFailing()" classname="sample.SampleGradleTest" time="0.215">
+    <failure message="org.opentest4j.AssertionFailedError: Assertion failed: expected true but was false" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: Assertion failed: expected true but was false
+	at app//org.junit.jupiter.api.AssertionUtils.fail(AssertionUtils.java:42)
+	at app//org.junit.jupiter.api.Assertions.fail(Assertions.java:143)
+	at app//sample.SampleGradleTest.testFailing(SampleGradleTest.java:22)
+</failure>
+  </testcase>
+  <testcase name="testFlaky()" classname="sample.SampleGradleTest" time="0.054">
+    <failure message="org.opentest4j.AssertionFailedError: Flaky failure on attempt 1" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: Flaky failure on attempt 1
+	at app//org.junit.jupiter.api.AssertionUtils.fail(AssertionUtils.java:42)
+	at app//org.junit.jupiter.api.Assertions.fail(Assertions.java:143)
+	at app//sample.SampleGradleTest.testFlaky(SampleGradleTest.java:39)
+</failure>
+  </testcase>
+  <testcase name="[1] &quot;alpha&quot;" classname="sample.SampleGradleTest" time="0.052"/>
+  <testcase name="[2] &quot;beta&quot;" classname="sample.SampleGradleTest" time="0.032">
+    <failure message="org.opentest4j.AssertionFailedError: Parameterized failure for beta" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: Parameterized failure for beta
+	at app//org.junit.jupiter.api.AssertionUtils.fail(AssertionUtils.java:42)
+	at app//org.junit.jupiter.api.Assertions.fail(Assertions.java:143)
+	at app//sample.SampleGradleTest.testParameterized(SampleGradleTest.java:47)
+</failure>
+  </testcase>
+  <testcase name="testErroring()" classname="sample.SampleGradleTest" time="0.026">
+    <failure message="java.lang.RuntimeException: Unexpected runtime error in test" type="java.lang.RuntimeException">java.lang.RuntimeException: Unexpected runtime error in test
+	at sample.SampleGradleTest.testErroring(SampleGradleTest.java:27)
+</failure>
+  </testcase>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

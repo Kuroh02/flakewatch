@@ -10,6 +10,10 @@ buildNumber.properties
 .mvn/timing.properties
 .mvn/wrapper/maven-wrapper.jar
 
+# Gradle
+.gradle/
+build/
+
 # Node & npm
 node_modules/
 npm-debug.log*
@@ -27,6 +31,7 @@ web/.vite/
 coverage/
 .nyc_output/
 *.lcov
+reports/
 playwright-report/
 blob-report/
 test-results/

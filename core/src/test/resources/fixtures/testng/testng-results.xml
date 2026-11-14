@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testng-results retried="1" ignored="1" total="8" passed="3" failed="3" skipped="0">
+  <reporter-output>
+  </reporter-output>
+  <suite started-at="2026-11-14T11:13:47 IST" name="Surefire suite" finished-at="2026-11-14T11:13:47 IST" duration-ms="53">
+    <groups>
+    </groups>
+    <test started-at="2026-11-14T11:13:47 IST" name="Surefire test" finished-at="2026-11-14T11:13:47 IST" duration-ms="53">
+      <class name="sample.SampleTestNGTest">
+        <test-method signature="testErroring()[pri:0, instance:sample.SampleTestNGTest@1445d7f]" started-at="2026-11-14T11:13:47 IST" name="testErroring" finished-at="2026-11-14T11:13:47 IST" duration-ms="4" status="FAIL">
+          <exception class="java.lang.RuntimeException">
+            <message>
+              <![CDATA[Unexpected runtime error]]>
+            </message>
+            <full-stacktrace>
+              <![CDATA[java.lang.RuntimeException: Unexpected runtime error
+at sample.SampleTestNGTest.testErroring(SampleTestNGTest.java:33)
+at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+at org.testng.internal.invokers.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:141)
+at org.testng.internal.invokers.TestInvoker.invokeMethod(TestInvoker.java:686)
+at org.testng.internal.invokers.TestInvoker.invokeTestMethod(TestInvoker.java:230)
+at org.testng.internal.invokers.MethodRunner.runInSequence(MethodRunner.java:63)
+at org.testng.internal.invokers.TestInvoker$MethodInvocationAgent.invoke(TestInvoker.java:992)
+at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:203)
+at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:154)
+at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:134)
+at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+at org.testng.TestRunner.privateRun(TestRunner.java:739)
+at org.testng.TestRunner.run(TestRunner.java:614)
+at org.testng.SuiteRunner.runTest(SuiteRunner.java:421)
+at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:413)
+at org.testng.SuiteRunner.privateRun(SuiteRunner.java:373)
+at org.testng.SuiteRunner.run(SuiteRunner.java:312)
+at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:95)
+at org.testng.TestNG.runSuitesSequentially(TestNG.java:1274)
+at org.testng.TestNG.runSuitesLocally(TestNG.java:1208)
+at org.testng.TestNG.runSuites(TestNG.java:1112)
+at org.testng.TestNG.run(TestNG.java:1079)
+at org.apache.maven.surefire.testng.TestNGExecutor.run(TestNGExecutor.java:155)
+at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.executeSingleClass(TestNGDirectoryTestSuite.java:102)
+at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.execute(TestNGDirectoryTestSuite.java:91)
+at org.apache.maven.surefire.testng.TestNGProvider.invoke(TestNGProvider.java:137)
+at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+]]>
+            </full-stacktrace>
+          </exception> <!-- java.lang.RuntimeException -->
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testErroring -->
+        <test-method signature="testFailing()[pri:0, instance:sample.SampleTestNGTest@1445d7f]" started-at="2026-11-14T11:13:47 IST" name="testFailing" finished-at="2026-11-14T11:13:47 IST" duration-ms="3" status="FAIL">
+          <exception class="java.lang.AssertionError">
+            <message>
+              <![CDATA[Assertion failure: expected true but was false]]>
+            </message>
+            <full-stacktrace>
+              <![CDATA[java.lang.AssertionError: Assertion failure: expected true but was false
+at org.testng.Assert.fail(Assert.java:111)
+at sample.SampleTestNGTest.testFailing(SampleTestNGTest.java:28)
+at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+at org.testng.internal.invokers.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:141)
+at org.testng.internal.invokers.TestInvoker.invokeMethod(TestInvoker.java:686)
+at org.testng.internal.invokers.TestInvoker.invokeTestMethod(TestInvoker.java:230)
+at org.testng.internal.invokers.MethodRunner.runInSequence(MethodRunner.java:63)
+at org.testng.internal.invokers.TestInvoker$MethodInvocationAgent.invoke(TestInvoker.java:992)
+at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:203)
+at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:154)
+at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:134)
+at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+at org.testng.TestRunner.privateRun(TestRunner.java:739)
+at org.testng.TestRunner.run(TestRunner.java:614)
+at org.testng.SuiteRunner.runTest(SuiteRunner.java:421)
+at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:413)
+at org.testng.SuiteRunner.privateRun(SuiteRunner.java:373)
+at org.testng.SuiteRunner.run(SuiteRunner.java:312)
+at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:95)
+at org.testng.TestNG.runSuitesSequentially(TestNG.java:1274)
+at org.testng.TestNG.runSuitesLocally(TestNG.java:1208)
+at org.testng.TestNG.runSuites(TestNG.java:1112)
+at org.testng.TestNG.run(TestNG.java:1079)
+at org.apache.maven.surefire.testng.TestNGExecutor.run(TestNGExecutor.java:155)
+at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.executeSingleClass(TestNGDirectoryTestSuite.java:102)
+at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.execute(TestNGDirectoryTestSuite.java:91)
+at org.apache.maven.surefire.testng.TestNGProvider.invoke(TestNGProvider.java:137)
+at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+]]>
+            </full-stacktrace>
+          </exception> <!-- java.lang.AssertionError -->
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testFailing -->
+        <test-method retried="true" signature="testFlaky()[pri:0, instance:sample.SampleTestNGTest@1445d7f]" started-at="2026-11-14T11:13:47 IST" name="testFlaky" finished-at="2026-11-14T11:13:47 IST" duration-ms="1" status="SKIP">
+          <exception class="java.lang.AssertionError">
+            <message>
+              <![CDATA[Flaky failure on first attempt]]>
+            </message>
+            <full-stacktrace>
+              <![CDATA[java.lang.AssertionError: Flaky failure on first attempt
+at org.testng.Assert.fail(Assert.java:111)
+at sample.SampleTestNGTest.testFlaky(SampleTestNGTest.java:44)
+at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+at org.testng.internal.invokers.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:141)
+at org.testng.internal.invokers.TestInvoker.invokeMethod(TestInvoker.java:686)
+at org.testng.internal.invokers.TestInvoker.invokeTestMethod(TestInvoker.java:230)
+at org.testng.internal.invokers.MethodRunner.runInSequence(MethodRunner.java:63)
+at org.testng.internal.invokers.TestInvoker$MethodInvocationAgent.invoke(TestInvoker.java:992)
+at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:203)
+at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:154)
+at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:134)
+at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+at org.testng.TestRunner.privateRun(TestRunner.java:739)
+at org.testng.TestRunner.run(TestRunner.java:614)
+at org.testng.SuiteRunner.runTest(SuiteRunner.java:421)
+at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:413)
+at org.testng.SuiteRunner.privateRun(SuiteRunner.java:373)
+at org.testng.SuiteRunner.run(SuiteRunner.java:312)
+at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:95)
+at org.testng.TestNG.runSuitesSequentially(TestNG.java:1274)
+at org.testng.TestNG.runSuitesLocally(TestNG.java:1208)
+at org.testng.TestNG.runSuites(TestNG.java:1112)
+at org.testng.TestNG.run(TestNG.java:1079)
+at org.apache.maven.surefire.testng.TestNGExecutor.run(TestNGExecutor.java:155)
+at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.executeSingleClass(TestNGDirectoryTestSuite.java:102)
+at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.execute(TestNGDirectoryTestSuite.java:91)
+at org.apache.maven.surefire.testng.TestNGProvider.invoke(TestNGProvider.java:137)
+at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+]]>
+            </full-stacktrace>
+          </exception> <!-- java.lang.AssertionError -->
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testFlaky -->
+        <test-method signature="testFlaky()[pri:0, instance:sample.SampleTestNGTest@1445d7f]" started-at="2026-11-14T11:13:47 IST" name="testFlaky" finished-at="2026-11-14T11:13:47 IST" duration-ms="1" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testFlaky -->
+        <test-method signature="testParameterized(java.lang.String,boolean)[pri:0, instance:sample.SampleTestNGTest@1445d7f]" started-at="2026-11-14T11:13:47 IST" name="testParameterized" data-provider="params" finished-at="2026-11-14T11:13:47 IST" duration-ms="4" status="PASS">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[alpha]]>
+              </value>
+            </param>
+            <param index="1">
+              <value>
+                <![CDATA[true]]>
+              </value>
+            </param>
+          </params>
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testParameterized -->
+        <test-method signature="testParameterized(java.lang.String,boolean)[pri:0, instance:sample.SampleTestNGTest@1445d7f]" started-at="2026-11-14T11:13:47 IST" name="testParameterized" data-provider="params" finished-at="2026-11-14T11:13:47 IST" duration-ms="0" status="FAIL">
+          <params>
+            <param index="0">
+              <value>
+                <![CDATA[beta]]>
+              </value>
+            </param>
+            <param index="1">
+              <value>
+                <![CDATA[false]]>
+              </value>
+            </param>
+          </params>
+          <exception class="java.lang.AssertionError">
+            <message>
+              <![CDATA[Parameterized failure on beta]]>
+            </message>
+            <full-stacktrace>
+              <![CDATA[java.lang.AssertionError: Parameterized failure on beta
+at org.testng.Assert.fail(Assert.java:111)
+at sample.SampleTestNGTest.testParameterized(SampleTestNGTest.java:59)
+at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:104)
+at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+at org.testng.internal.invokers.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:141)
+at org.testng.internal.invokers.TestInvoker.invokeMethod(TestInvoker.java:686)
+at org.testng.internal.invokers.TestInvoker.invokeTestMethod(TestInvoker.java:230)
+at org.testng.internal.invokers.MethodRunner.runInSequence(MethodRunner.java:63)
+at org.testng.internal.invokers.TestInvoker$MethodInvocationAgent.invoke(TestInvoker.java:992)
+at org.testng.internal.invokers.TestInvoker.invokeTestMethods(TestInvoker.java:203)
+at org.testng.internal.invokers.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:154)
+at org.testng.internal.invokers.TestMethodWorker.run(TestMethodWorker.java:134)
+at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+at org.testng.TestRunner.privateRun(TestRunner.java:739)
+at org.testng.TestRunner.run(TestRunner.java:614)
+at org.testng.SuiteRunner.runTest(SuiteRunner.java:421)
+at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:413)
+at org.testng.SuiteRunner.privateRun(SuiteRunner.java:373)
+at org.testng.SuiteRunner.run(SuiteRunner.java:312)
+at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
+at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:95)
+at org.testng.TestNG.runSuitesSequentially(TestNG.java:1274)
+at org.testng.TestNG.runSuitesLocally(TestNG.java:1208)
+at org.testng.TestNG.runSuites(TestNG.java:1112)
+at org.testng.TestNG.run(TestNG.java:1079)
+at org.apache.maven.surefire.testng.TestNGExecutor.run(TestNGExecutor.java:155)
+at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.executeSingleClass(TestNGDirectoryTestSuite.java:102)
+at org.apache.maven.surefire.testng.TestNGDirectoryTestSuite.execute(TestNGDirectoryTestSuite.java:91)
+at org.apache.maven.surefire.testng.TestNGProvider.invoke(TestNGProvider.java:137)
+at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+]]>
+            </full-stacktrace>
+          </exception> <!-- java.lang.AssertionError -->
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testParameterized -->
+        <test-method signature="testPassing()[pri:0, instance:sample.SampleTestNGTest@1445d7f]" started-at="2026-11-14T11:13:47 IST" name="testPassing" finished-at="2026-11-14T11:13:47 IST" duration-ms="0" status="PASS">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testPassing -->
+      </class> <!-- sample.SampleTestNGTest -->
+    </test> <!-- Surefire test -->
+  </suite> <!-- Surefire suite -->
+</testng-results>
