@@ -15,19 +15,28 @@ info:
     Requirement IDs from docs/SPEC.md are noted in each operation's description.
   license:
     name: MIT
+    url: https://opensource.org/licenses/MIT
 servers:
   - url: /api/v1
 tags:
   - name: ingestion
     description: Uploading test results from CI
   - name: projects
+    description: Managing test suites and repositories
   - name: tokens
+    description: API token management
   - name: tests
+    description: Test results, history, and classifications
   - name: runs
+    description: CI run records and summaries
   - name: failures
+    description: Failure groups and root causes
   - name: quarantine
+    description: Quarantined tests and management
   - name: account
+    description: Current user profile and settings
   - name: meta
+    description: Metadata, versioning, and system health
 
 paths:
   /uploads:
@@ -143,6 +152,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Version'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /projects:
     get:
@@ -933,6 +944,7 @@ components:
           format: date-time
           nullable: true
         summary:
+          type: object
           allOf:
             - $ref: '#/components/schemas/UploadSummary'
           nullable: true
@@ -1326,6 +1338,7 @@ components:
               items:
                 $ref: '#/components/schemas/DurationPoint'
             quarantine:
+              type: object
               allOf:
                 - $ref: '#/components/schemas/QuarantineEntry'
               nullable: true

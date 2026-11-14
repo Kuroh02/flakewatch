@@ -43,7 +43,7 @@ Before starting a phase, re-read the spec sections and plan sections it lists.
 
 ### Contract and spikes
 
-- [ ] **T-0.14** Review `api/openapi.yaml` against SPEC.md, line by line. Fix gaps. Lint clean. — NFR-QUAL-003
+- [x] **T-0.14** Review `api/openapi.yaml` against SPEC.md, line by line. Fix gaps. Lint clean. — NFR-QUAL-003
 - [ ] **T-0.15** Spike S-1: build the sample projects in `tools/fixture-gen/` (Maven Surefire with `rerunFailingTestsCount`, Gradle with test-retry, TestNG, Playwright, WebdriverIO, jest-junit). Each has passing, failing, erroring, skipped, flaky and parameterised tests. Commit the generated XML to `core/src/test/resources/fixtures/<producer>/`. — FR-ING-006, FR-ING-007
 - [ ] **T-0.16** Spike S-2: write the `Props` helper (generators, seeds, list shrinking) with its own tests. Record the outcome in ADR-0005. — NFR-QUAL-001
 - [ ] **T-0.17** Spike S-3: run the image with `docker run -m 512m --cpus 0.1`. Record heap, memory use and startup time; tune `JAVA_TOOL_OPTIONS`. Record in ADR-0006. — NFR-PERF-004
