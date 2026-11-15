@@ -54,7 +54,7 @@ Before starting a phase, re-read the spec sections and plan sections it lists.
 
 - [ ] The live URL returns the deployed commit SHA from `/api/v1/version`.
 - [ ] CI is green with all jobs required by branch protection.
-- [ ] Spikes S-1, S-2, S-3, S-5 and S-6 are recorded, and fixture files are committed.
+- [x] Spikes S-1, S-2, S-3, S-5 and S-6 are recorded, and fixture files are committed.
 
 ---
 
