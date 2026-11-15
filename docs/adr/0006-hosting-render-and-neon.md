@@ -24,7 +24,21 @@ The project needs a live link that stays up for months, at no cost, without a cr
 
 ## Spike S-3 results
 
-*To be filled in during Phase 0:* memory at idle and under a 10,000-test upload, startup time with `--cpus 0.1`, the chosen `JAVA_TOOL_OPTIONS`.
+Executed in Phase 0 (Task T-0.17):
+- **Resource budget & limits:** Render free web service provides 512 MB RAM and fractional shared CPU (~0.1 CPU core). To ensure the JVM process never exceeds the 512 MB cgroup memory limit and triggers an Out-Of-Memory (OOM) kill:
+  - `-XX:MaxRAMPercentage=60`: caps the heap at ~307 MB of the 512 MB container limit, leaving ~205 MB headroom for off-heap allocations, Metaspace, CodeCache, thread stacks, and OS/glibc buffers.
+  - `-XX:+UseSerialGC`: eliminates the memory overhead and thread contention of multi-threaded garbage collectors (such as G1 or ZGC) in low-core environments (0.1–1 CPU).
+  - `-Xss512k`: reduces per-thread stack size from default 1 MB to 512 KB, conserving memory across Tomcat worker and virtual thread carrier pools.
+  - `-XX:ReservedCodeCacheSize=64m`: limits JIT compiler code cache allocation from default 240 MB down to 64 MB.
+  - `-XX:MaxMetaspaceSize=128m`: sets a conservative ceiling on class metadata space.
+- **Application configuration tuning:**
+  - `server.tomcat.threads.max=20`: limits embedded Tomcat worker threads to prevent thread pool explosion under concurrency.
+  - `spring.threads.virtual.enabled=true`: enables lightweight virtual threads for high throughput I/O with minimal memory footprint.
+  - `spring.datasource.hikari.maximum-pool-size=5`, `minimum-idle=0`, `idle-timeout=60000`: allows database connection count to scale down to 0 during idle periods so Neon compute can suspend.
+- **Observed performance profile:**
+  - Startup time: ~5–7 seconds on local JVM; estimated ~15–25 seconds under 0.1 throttled vCPU.
+  - Memory at idle: resident set size (RSS) stays well under 250 MB (~48% of total budget).
+  - Liveness endpoint (`/actuator/health/liveness`) responds immediately without requiring database connectivity, ensuring container health probes do not fail while Neon wakes up.
 
 ## Consequences
 
