@@ -65,7 +65,7 @@ Before starting a phase, re-read the spec sections and plan sections it lists.
 
 ### Schema, tokens, access
 
-- [ ] **T-1.1** Flyway `V2` (runs, uploads, files, jobs) and `V3` (test cases, failure groups, executions, daily stats, `pg_trgm`), as in data-model.md. Add a migration integration test. — FR-ING-010
+- [x] **T-1.1** Flyway `V2` (runs, uploads, files, jobs) and `V3` (test cases, failure groups, executions, daily stats, `pg_trgm`), as in data-model.md. Add a migration integration test. — FR-ING-010
 - [ ] **T-1.2** Tests first: token generation (prefix, 256-bit random, base62), hashing, lookup, revoked → `401`, wrong scope → `403`, `Secret` redacted in logs. Then implement `TokenService` and `TokenAuthenticationFilter`. — NFR-SEC-001, FR-PRJ-005
 - [ ] **T-1.3** Bootstrap command (`--flakewatch.bootstrap.project=…`): creates a project, prints an ingest token once, and exits. Add an integration test. — FR-PRJ-007
 - [ ] **T-1.4** `ProjectAccess`: the single place that decides access. Public/private read rules, and `404` (not `403`) for private projects. Unit tests. — FR-PRJ-004
