@@ -26,6 +26,9 @@
     <spring-boot.version>4.1.2</spring-boot.version>
     <testcontainers.version>1.20.4</testcontainers.version>
     <archunit.version>1.5.1</archunit.version>
+    <rest-assured.version>5.5.0</rest-assured.version>
+    <swagger-request-validator.version>2.46.1</swagger-request-validator.version>
+    <groovy.version>4.0.22</groovy.version>
 
     <!-- Plugins -->
     <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
@@ -39,6 +42,14 @@
 
   <dependencyManagement>
     <dependencies>
+      <!-- Align Groovy version for RestAssured compatibility on Spring Boot 4 -->
+      <dependency>
+        <groupId>org.apache.groovy</groupId>
+        <artifactId>groovy-bom</artifactId>
+        <version>${groovy.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
       <!-- Spring Boot Dependencies BOM -->
       <dependency>
         <groupId>org.springframework.boot</groupId>
@@ -60,6 +71,20 @@
         <groupId>com.tngtech.archunit</groupId>
         <artifactId>archunit-junit5</artifactId>
         <version>${archunit.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <!-- API and Contract testing -->
+      <dependency>
+        <groupId>io.rest-assured</groupId>
+        <artifactId>rest-assured</artifactId>
+        <version>${rest-assured.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.atlassian.oai</groupId>
+        <artifactId>swagger-request-validator-restassured</artifactId>
+        <version>${swagger-request-validator.version}</version>
         <scope>test</scope>
       </dependency>
 

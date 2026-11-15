@@ -48,7 +48,7 @@ Before starting a phase, re-read the spec sections and plan sections it lists.
 - [x] **T-0.16** Spike S-2: write the `Props` helper (generators, seeds, list shrinking) with its own tests. Record the outcome in ADR-0005. — NFR-QUAL-001
 - [ ] **T-0.17** Spike S-3: run the image with `docker run -m 512m --cpus 0.1`. Record heap, memory use and startup time; tune `JAVA_TOOL_OPTIONS`. Record in ADR-0006. — NFR-PERF-004
 - [x] **T-0.18** Spike S-5: run PIT on `core` with one trivial test. Record the result in ADR-0007, or apply the fallback. — NFR-QUAL-001
-- [ ] **T-0.19** Spike S-6: RestAssured with the OpenAPI validation filter against `/api/v1/version`. Record the result, or apply the fallback. — NFR-QUAL-003
+- [x] **T-0.19** Spike S-6: RestAssured with the OpenAPI validation filter against `/api/v1/version`. Record the result, or apply the fallback. — NFR-QUAL-003
 
 ### Exit criteria
 

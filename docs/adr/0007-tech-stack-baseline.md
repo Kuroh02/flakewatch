@@ -26,6 +26,12 @@ Executed in Phase 0 (Task T-0.18):
 2. **IPC socket communication:** PIT's minion process connects back to the Maven plugin process via a local TCP socket (`127.0.0.1`). In constrained sandbox environments, running the mutation coverage task with localhost socket permissions is required.
 3. **JUnit Platform alignment:** By aligning JUnit Platform dependencies transitively via the parent POM and using `pitest-junit5-plugin:1.2.2`, PIT successfully discovers Jupiter test units, generates mutations, and kills 100% of mutations on the test suite (`TextHelperTest`).
 
+## Spike S-6 result (OpenAPI validation with RestAssured)
+
+Executed in Phase 0 (Task T-0.19):
+1. **Groovy version alignment:** Spring Boot 4 defaults to Groovy 5.0.x, which causes `RestAssured` (5.5.0) internal request execution closures to fail with `NullPointerException` at `Class.isAssignableFrom` in `ClosureMetaClass`. By importing `org.apache.groovy:groovy-bom:4.0.22` in `dependencyManagement` before `spring-boot-dependencies`, RestAssured runs cleanly on Groovy 4.
+2. **Atlassian Swagger Request Validator:** `swagger-request-validator-restassured:2.46.1` integrates cleanly with RestAssured on Spring Boot 4 and Java 25. The `OpenApiValidationFilter` successfully validated HTTP requests and responses for `/api/v1/version` against `api/openapi.yaml` in `VersionContractIT` without requiring schema modifications or fallbacks.
+
 ## Consequences
 
 - ➕ Current, mainstream and employable. Plain SQL shows real database skill.
