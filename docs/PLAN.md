@@ -62,7 +62,7 @@ Versions are as of November 2026. At the start of Phase 0, use the newest patch 
 | Build | **Maven** multi-module, with the Maven Wrapper | Familiar from Selenium/TestNG work. Surefire's rerun output feeds our own dogfooding. |
 | Database | **PostgreSQL 17** | Use the same major version locally, in CI and in production. |
 | Data access | **Spring `JdbcClient` + plain SQL** | No JPA. We need bulk upserts, `ON CONFLICT`, `FOR UPDATE SKIP LOCKED` and predictable queries. |
-| Migrations | **Flyway** | Forward-only. |
+| Migrations | **Flyway** | Forward-only. Needs the `flyway-database-postgresql` module, because Flyway 10+ ships database support separately. |
 | XML parsing | **StAX** (built into the JDK) | Streaming, so memory stays flat, and easy to harden. |
 | Unit tests | **JUnit 6** (managed by Spring Boot 4) + **AssertJ** | |
 | Property tests | **Small in-house helper** on JUnit 6 | See [ADR-0005](adr/0005-property-testing-approach.md). |
