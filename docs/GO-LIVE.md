@@ -84,7 +84,7 @@ Projects are created with a one-off command until GitHub sign-in exists (M2). Ru
 with the same database settings, on your own machine:
 
 ```bash
-docker run --rm \
+docker run --rm --platform linux/amd64 \
   -e SPRING_PROFILES_ACTIVE=prod \
   -e SPRING_DATASOURCE_URL='jdbc:postgresql://<host>/flakewatch?sslmode=require' \
   -e SPRING_DATASOURCE_USERNAME='<user>' \
@@ -94,7 +94,7 @@ docker run --rm \
   --flakewatch.bootstrap.project=demo --flakewatch.bootstrap.visibility=PUBLIC
 ```
 
-`FLAKEWATCH_WORKERS=0` stops this one-off copy from processing uploads alongside the live service. It prints an ingest token **once**. Copy it straight into the demo repository's secrets (next step),
+`FLAKEWATCH_WORKERS=0` stops this one-off copy from processing uploads alongside the live service. It prints an ingest token **once**. On an Apple Silicon Mac, `--platform linux/amd64` lets Docker Desktop run the image, which is built for the Intel/AMD servers Render uses. Copy it straight into the demo repository's secrets (next step),
 and nowhere else.
 
 Run it again with `--flakewatch.bootstrap.project=flakewatch-self` to get a token for Flakewatch's
