@@ -429,6 +429,11 @@ export interface components {
             /** @example duplicate-upload-different-content */
             code: string;
             errors?: components["schemas"]["FieldError"][];
+            /**
+             * @description The request's id (the X-Request-Id header, or one the server made up). Quote it when reporting a problem.
+             * @example 3f1c2a9e
+             */
+            requestId?: string;
         };
         FieldError: {
             /** @example metadata.commitSha */

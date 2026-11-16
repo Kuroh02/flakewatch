@@ -1,0 +1,39 @@
+name: Tests
+
+on:
+  push:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 */3 * * *'   # every 3 hours, so the live demo always has fresh data
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        java: ['21', '25']
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+          cache: maven
+
+      - name: Run tests
+        run: mvn -B verify
+
+      - name: Upload test results to Flakewatch
+        if: ${{ !cancelled() }}
+        uses: Kuroh02/flakewatch/action@main
+        with:
+          server-url: ${{ vars.FLAKEWATCH_URL }}
+          token: ${{ secrets.FLAKEWATCH_INGEST_TOKEN }}
+          files: 'target/surefire-reports/TEST-*.xml'
+          job-key: tests-java-${{ matrix.java }}
+          variant: java-${{ matrix.java }}

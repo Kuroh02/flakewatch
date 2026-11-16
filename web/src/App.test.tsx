@@ -1,51 +1,38 @@
-import { render, screen, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import '@testing-library/jest-dom/vitest';
+import { render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
+import { mockApi, openAt } from './test/mockApi';
+import { demoProject } from './test/sampleData';
 
-describe('T-0.10: Placeholder page showing /api/v1/version', () => {
-  beforeEach(() => {
-    vi.stubGlobal('fetch', vi.fn());
-  });
-
+describe('US-09: a visitor explores the demo without signing up', () => {
   afterEach(() => {
-    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
-  it('fetches and displays version information from /api/v1/version', async () => {
-    const mockVersion = {
-      version: '0.1.0-SNAPSHOT',
-      commit: 'abc1234',
-      builtAt: '2026-11-14T00:00:00Z',
-    };
-
-    (
-      globalThis.fetch as unknown as ReturnType<typeof vi.fn>
-    ).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockVersion,
-    });
-
+  it('lists public projects on the home page, each linking to its overview', async () => {
+    mockApi({ '/api/v1/projects': { items: [demoProject], nextCursor: null } });
+    openAt('/');
     render(<App />);
 
-    expect(screen.getByText(/loading/i)).toBeInTheDocument();
-
-    await waitFor(() => {
-      expect(screen.getByText(/0.1.0-SNAPSHOT/i)).toBeInTheDocument();
-      expect(screen.getByText(/abc1234/i)).toBeInTheDocument();
-    });
-
-    expect(globalThis.fetch).toHaveBeenCalledWith('/api/v1/version');
+    const link = await screen.findByRole('link', { name: /Shop demo/ });
+    expect(link).toHaveAttribute('href', '/p/demo');
   });
 
-  it('displays an error message when the version fetch fails', async () => {
-    (
-      globalThis.fetch as unknown as ReturnType<typeof vi.fn>
-    ).mockRejectedValueOnce(new Error('Failed to fetch'));
-
+  it('shows a friendly page for an address that does not exist', () => {
+    mockApi({});
+    openAt('/p/demo/settings');
     render(<App />);
 
-    await waitFor(() => {
-      expect(screen.getByText(/failed to load version/i)).toBeInTheDocument();
-    });
+    expect(screen.getByRole('heading', { name: 'Page not found' })).toBeInTheDocument();
+  });
+
+  it('says so clearly when the server cannot be reached', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => Promise.reject(new TypeError('Failed to fetch'))));
+    openAt('/');
+    render(<App />);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/could not load/i);
+    expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument();
   });
 });

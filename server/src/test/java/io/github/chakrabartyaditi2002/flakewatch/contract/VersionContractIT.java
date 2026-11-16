@@ -5,9 +5,8 @@ import static org.hamcrest.Matchers.notNullValue;
 
 import com.atlassian.oai.validator.restassured.OpenApiValidationFilter;
 import io.github.chakrabartyaditi2002.flakewatch.FlakewatchApplication;
+import io.github.chakrabartyaditi2002.flakewatch.test.ContractFilter;
 import io.restassured.RestAssured;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -44,11 +43,7 @@ class VersionContractIT {
     @BeforeEach
     void setUp() {
         RestAssured.port = port;
-        Path specPath = Path.of("..", "api", "openapi.yaml");
-        if (!Files.exists(specPath)) {
-            specPath = Path.of("api", "openapi.yaml");
-        }
-        openApiValidationFilter = new OpenApiValidationFilter(specPath.toAbsolutePath().toString());
+        openApiValidationFilter = ContractFilter.create();
     }
 
     @Test

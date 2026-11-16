@@ -806,6 +806,10 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/FieldError'
+        requestId:
+          type: string
+          description: The request's id (the X-Request-Id header, or one the server made up). Quote it when reporting a problem.
+          example: 3f1c2a9e
     FieldError:
       type: object
       required: [field, message]

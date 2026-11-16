@@ -1,98 +1,77 @@
-import { useEffect, useState } from 'react';
-
-interface VersionInfo {
-  version: string;
-  commit: string;
-  builtAt: string;
-}
+import { Layout } from './components/Layout';
+import { ErrorState, Loading, NotFound } from './components/States';
+import type { Project } from './lib/api';
+import { useLocation } from './lib/router';
+import { useApi } from './lib/useApi';
+import { matchRoute, readQuery, type Route } from './lib/url';
+import { FailureGroupPage, FailureGroups } from './pages/FailureGroups';
+import { Home } from './pages/Home';
+import { Overview } from './pages/Overview';
+import { RunDetail } from './pages/RunDetail';
+import { RunsList } from './pages/RunsList';
+import { TestDetail } from './pages/TestDetail';
+import { TestsList } from './pages/TestsList';
 
 export default function App() {
-  const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { pathname, search } = useLocation();
+  const route = matchRoute(pathname);
+  const query = readQuery(search);
 
-  useEffect(() => {
-    let isMounted = true;
+  if (route.name === 'home') {
+    return (
+      <Layout route={route}>
+        <Home />
+      </Layout>
+    );
+  }
+  if (route.name === 'notFound') {
+    return (
+      <Layout route={route}>
+        <NotFound />
+      </Layout>
+    );
+  }
+  return <ProjectPage route={route} query={query} />;
+}
 
-    fetch('/api/v1/version')
-      .then(async (res) => {
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
-        return res.json() as Promise<VersionInfo>;
-      })
-      .then((data) => {
-        if (isMounted) {
-          setVersionInfo(data);
-          setLoading(false);
-        }
-      })
-      .catch((err: Error) => {
-        if (isMounted) {
-          setError(err.message || 'Failed to fetch');
-          setLoading(false);
-        }
-      });
+/** Every page inside a project first checks the project exists and is visible (FR-PRJ-004). */
+function ProjectPage({ route, query }: { route: Extract<Route, { slug: string }>; query: Record<string, string> }) {
+  const project = useApi<Project>(`/api/v1/projects/${route.slug}`);
 
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  let content;
+  if (project.status === 'loading') {
+    content = <Loading what="the project" />;
+  } else if (project.status === 'error') {
+    content = project.error.status === 404 ? <NotFound /> : <ErrorState error={project.error} onRetry={project.reload} />;
+  } else {
+    switch (route.name) {
+      case 'overview':
+        content = <Overview slug={route.slug} />;
+        break;
+      case 'tests':
+        content = <TestsList slug={route.slug} query={query} />;
+        break;
+      case 'test':
+        content = <TestDetail key={route.testId} slug={route.slug} testId={route.testId} />;
+        break;
+      case 'runs':
+        content = <RunsList slug={route.slug} query={query} />;
+        break;
+      case 'run':
+        content = <RunDetail key={route.runId} slug={route.slug} runId={route.runId} />;
+        break;
+      case 'failures':
+        content = <FailureGroups slug={route.slug} query={query} />;
+        break;
+      case 'failure':
+        content = <FailureGroupPage key={route.groupId} slug={route.slug} groupId={route.groupId} />;
+        break;
+    }
+  }
 
   return (
-    <main
-      style={{
-        fontFamily: 'system-ui, sans-serif',
-        padding: '2rem',
-        maxWidth: '600px',
-        margin: '0 auto',
-      }}
-    >
-      <h1>Flakewatch</h1>
-      <p>Test suite health and flaky test detection platform.</p>
-
-      <section
-        style={{
-          border: '1px solid #ccc',
-          borderRadius: '8px',
-          padding: '1rem',
-          marginTop: '1.5rem',
-        }}
-      >
-        <h2>Backend Status</h2>
-        {loading && <p>Loading version info...</p>}
-        {error && (
-          <p style={{ color: 'red' }}>Failed to load version: {error}</p>
-        )}
-        {versionInfo && (
-          <dl
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'auto 1fr',
-              gap: '0.5rem 1rem',
-            }}
-          >
-            <dt>
-              <strong>Version:</strong>
-            </dt>
-            <dd>
-              <code>{versionInfo.version}</code>
-            </dd>
-
-            <dt>
-              <strong>Commit:</strong>
-            </dt>
-            <dd>
-              <code>{versionInfo.commit}</code>
-            </dd>
-
-            <dt>
-              <strong>Built At:</strong>
-            </dt>
-            <dd>{versionInfo.builtAt}</dd>
-          </dl>
-        )}
-      </section>
-    </main>
+    <Layout route={route} projectName={project.status === 'ready' ? project.data.name : undefined}>
+      {content}
+    </Layout>
   );
 }

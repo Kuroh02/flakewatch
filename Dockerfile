@@ -54,6 +54,10 @@ COPY --from=server-builder --chown=flakewatch:flakewatch /app/extracted/spring-b
 COPY --from=server-builder --chown=flakewatch:flakewatch /app/extracted/snapshot-dependencies/ ./
 COPY --from=server-builder --chown=flakewatch:flakewatch /app/extracted/application/ ./
 
+# The deployed commit, shown by /api/v1/version so the deploy can confirm the new version is live
+ARG GIT_COMMIT=dev
+ENV GIT_COMMIT=${GIT_COMMIT}
+
 EXPOSE 8080
 
 ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=60 -XX:+UseSerialGC -Xss512k -XX:ReservedCodeCacheSize=64m -XX:MaxMetaspaceSize=128m"
