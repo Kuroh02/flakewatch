@@ -31,9 +31,9 @@ COPY --from=web-builder /app/web/dist server/src/main/resources/static/
 # Package application layered jar
 RUN ./mvnw -pl server -am package -DskipTests -B
 
-# Extract layered jar
+# Extract layered jar. --launcher includes Spring Boot's JarLauncher, which the ENTRYPOINT starts.
 WORKDIR /app/server/target
-RUN java -Djarmode=tools -jar server-*.jar extract --layers --destination /app/extracted
+RUN java -Djarmode=tools -jar server-*.jar extract --layers --launcher --destination /app/extracted
 
 # Stage 3: Runtime image
 FROM eclipse-temurin:25-jre AS runtime
