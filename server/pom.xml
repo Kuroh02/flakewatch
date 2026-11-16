@@ -118,6 +118,15 @@
   <build>
     <plugins>
       <plugin>
+        <!-- Run integration tests against the compiled classes, not the repackaged Spring Boot jar,
+             whose BOOT-INF layout hides them from the test classpath -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <classesDirectory>${project.build.outputDirectory}</classesDirectory>
+        </configuration>
+      </plugin>
+      <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <executions>
