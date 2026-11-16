@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<testsuites>
+  <testsuite name="fallback.Suite">
+    <testcase classname="a.B" time="0.5"/>
+    <testcase name="usesSuiteName" time="1,234.5"/>
+    <testcase classname="a.B" name="badTime" time="soon"/>
+  </testsuite>
+</testsuites>
