@@ -1,82 +1,106 @@
 # Flakewatch
 
-> **Is that red build real, or just a flaky test?** Flakewatch collects test results from CI, tells you which failures are **flaky** and which are **real**, and shows the **proof** for every claim.
+**Is that red build a real bug, or just a flaky test?**
 
-**Status:** M1 (live demo) code is built and waiting for its first green CI run; going live is described in [docs/GO-LIVE.md](docs/GO-LIVE.md). *(Flakewatch is a working name.)*
+Flakewatch collects test results from your CI, works out which failing tests are **flaky** (they
+pass and fail on the same code) and which are **really broken**, and shows the evidence behind
+every label.
 
-![A flaky test in the dashboard: its status per browser, the proof, and the last 30 results](docs/images/test-detail.png)
+**[Live demo →](https://flakewatch-latest.onrender.com/p/demo)** It runs on a free plan, so the
+first visit after a quiet spell takes about a minute to wake up.
 
-*The test page, with sample data: flaky only on Firefox, with the two pieces of evidence that prove it.*
+![The test page: a flaky test's status per browser, the evidence, and its last 30 results](docs/images/test-detail.png)
 
----
+*The test page, with sample data: a test that is flaky only on Firefox, and the two runs that prove it.*
+
+## Why
+
+Flaky tests make CI noisy. A build goes red, someone re-runs it, it goes green, and everyone learns
+to ignore red builds, including the ones that matter. At Google, about 1 in 6 tests showed some
+flakiness, and most pass-to-fail changes involved a flaky test
+([Google Testing Blog, 2016](https://testing.googleblog.com/2016/05/flaky-tests-at-google-and-how-we.html)).
+
+The usual fixes are a spreadsheet, a gut feeling, or a paid tool. Flakewatch is a small,
+self-hostable alternative that works with any CI producing JUnit XML.
 
 ## What it does
 
-- **Collects** JUnit XML from any CI (GitHub Action included; Jenkins and others via `curl`).
-- **Detects** flaky tests from evidence: a test that failed and then passed on retry, or that passed and failed on the same commit.
-- **Explains** every label: which runs, which commit, what happened.
-- **Groups** similar failures, so 40 timeouts read as one problem.
-- **Ranks** flaky tests by how much pain they cause.
-- **Quarantines** flaky tests (JUnit and TestNG), so they stop breaking builds but keep being tracked.
-- **Never breaks your build:** if Flakewatch is down, your CI behaves as if it weren't there.
+- **Collects** JUnit XML from GitHub Actions (one step), Jenkins, GitLab or anything that can run `curl`.
+  It reads reports from Surefire, Gradle, TestNG, Playwright, WebdriverIO and jest-junit.
+- **Labels each test** as Stable, Flaky, Suspected, Failing, Broken or "Not enough data", separately for each
+  environment, such as Java 21 vs Java 25 or Chrome vs Firefox.
+- **Only calls a test flaky with proof:** it failed and then passed on a retry, or it passed and
+  failed on the same commit. The test page shows which runs prove it.
+- **Groups similar failures**, so 40 identical timeouts read as one problem.
+- **Never breaks your build.** If Flakewatch is down, the upload step prints a warning and your CI
+  carries on.
 
-## Read the docs in this order
+## Use it in GitHub Actions
 
-| # | Document | What you'll learn | Time |
-|---|---|---|---|
-| 1 | [Constitution](docs/CONSTITUTION.md) | The rules this project never breaks | 10 min |
-| 2 | [Spec](docs/SPEC.md) | What we're building and why: stories, requirements, success criteria | 20 min |
-| 3 | [Detection rules](docs/design/detection-rules.md) | The heart of the product: exactly how a test gets its label | 15 min |
-| 4 | [Plan](docs/PLAN.md) | How it's built: architecture, designs, testing, CI/CD, deployment | 45 min |
-| 5 | [Tasks](docs/TASKS.md) | The ordered checklist to build v1 | 10 min |
-| 6 | [Workflow](docs/WORKFLOW.md) | How work moves from idea to shipped code | 10 min |
-| 7 | [Going live](docs/GO-LIVE.md) | From the repository to a public link, step by step | 10 min |
+Add one step after your tests:
 
-**Reference:**
-[Glossary](docs/GLOSSARY.md) ·
-[Data model](docs/design/data-model.md) ·
-[API contract](api/openapi.yaml) ·
-[Decision records](docs/adr/README.md) ·
-[Templates](docs/templates/) ·
-[First post-v1 feature](specs/001-ci-feedback/spec.md) ·
-[Rules for AI assistants](AGENTS.md)
+```yaml
+- name: Upload test results to Flakewatch
+  if: ${{ !cancelled() }}   # also run when tests failed: that's the point
+  uses: Kuroh02/flakewatch/action@main
+  with:
+    server-url: ${{ vars.FLAKEWATCH_URL }}
+    token: ${{ secrets.FLAKEWATCH_INGEST_TOKEN }}
+    files: '**/target/surefire-reports/TEST-*.xml'
+```
 
-## Milestones
-
-| Milestone | What's included | Phases |
-|---|---|---|
-| **M1: Live demo** | Upload, detection, failure groups, read-only dashboard, GitHub Action, live demo data | 0–4 |
-| **M2: v1.0** | GitHub sign-in, projects and tokens, settings, quarantine (JUnit and TestNG) | 5–6 |
-| **M3: v1.1** | Measured performance, faster cold start, PR comments and alerts, retrospective | 7 |
-
-## Tech at a glance
-
-Java 25 · Spring Boot 4 · PostgreSQL 17 · React 19 + TypeScript · Playwright · GitHub Actions · Docker · Render + Neon (free tiers)
+Other CI systems: see [Upload from any CI](docs/guides/upload-from-any-ci.md). All the action's
+options are in its [README](action/README.md).
 
 ## How it works
 
-1. **CI uploads** its JUnit XML after the tests run: one step with the [GitHub Action](action/README.md), or [one `curl` command](docs/guides/upload-from-any-ci.md) anywhere else. The upload is saved together with a background job, in one transaction, so it can't be lost.
-2. **A background job parses** the reports (Surefire, Gradle, TestNG, Playwright, WebdriverIO, jest-junit), stores every attempt of every test, and groups similar failures by fingerprint.
-3. **Detection** decides each test's status from evidence, per environment ([the rules](docs/design/detection-rules.md)). A test is only called flaky when there's proof: it failed and then passed on a retry, or it passed and failed on the same commit.
-4. **The dashboard** shows the result: which failures in a run are known flaky, new, or broken, and the proof behind every label.
-
-Everything runs as one Spring Boot service with one PostgreSQL database. The job queue is a database table, so no message broker is needed.
-
-## Repository layout
-
-```
-core/          pure-Java logic: report parser, detection rules, failure fingerprints
-server/        Spring Boot service: upload API, job queue, read API; serves the dashboard
-web/           React dashboard
-action/        GitHub Action uploader (no dependencies)
-api/           OpenAPI contract
-examples/      a demo project with deliberately flaky tests, for the live demo
-docs/  specs/  constitution, spec, plan, tasks, design, ADRs, guides, feature specs
+```mermaid
+flowchart LR
+  CI["CI job<br/>(GitHub Action or curl)"] -->|JUnit XML| API["Upload API"]
+  API -->|"upload + job,<br/>one transaction"| DB[("PostgreSQL")]
+  DB -->|claim job| W["Background worker<br/>parse → store → detect"]
+  W --> DB
+  DB --> UI["Dashboard and read API"]
 ```
 
-Planned for later (M2 and M3): `quarantine/` (JUnit and TestNG libraries), `e2e/` and `perf/`.
+1. **CI uploads** its reports. The upload and a "process this" job are saved in one database
+   transaction, so an accepted upload is never lost. Sending the same upload twice is safe: CI
+   retries don't create duplicates.
+2. **A background worker** claims the job, parses the XML, stores every attempt of every test, and
+   groups failures by a fingerprint of their error message and stack trace.
+3. **Detection** re-labels the affected tests from their recent history
+   ([the exact rules](docs/design/detection-rules.md)).
+4. **The dashboard** shows each run's failures as known-flaky, new or broken, with the evidence.
 
-## Running it locally
+It's one Spring Boot service and one PostgreSQL database. The job queue is a database table, so
+there's no message broker to run.
+
+## Engineering notes
+
+The parts most worth a look, with the reasoning written down in [decision records](docs/adr/README.md):
+
+- **A job queue in PostgreSQL**, using `FOR UPDATE SKIP LOCKED`, leases with fencing tokens, retries
+  with backoff, and a dead-letter state after 5 attempts ([ADR-0003](docs/adr/0003-postgres-job-queue.md)).
+- **Evidence-based detection** as a pure function, tested with worked examples and property-based
+  tests ([ADR-0004](docs/adr/0004-evidence-based-detection-rules.md),
+  [ADR-0005](docs/adr/0005-property-testing-approach.md)).
+- **A hardened XML parser** that rejects DTDs and external entities and enforces size limits. It is
+  tested with real reports and with malicious ones (XXE, "billion laughs").
+- **Contract-first API.** Every response in the integration tests is checked against
+  [`api/openapi.yaml`](api/openapi.yaml), and the dashboard's TypeScript types are generated from it.
+- **Deterministic tests.** Time and randomness are injected, so tests never sleep or depend on the
+  clock.
+- **CI on every pull request:** unit tests, integration tests against a real PostgreSQL
+  (Testcontainers), dashboard tests, a container build that is started and smoke-tested, and a
+  vulnerability scan. Merging to `main` deploys automatically and checks the new version is live.
+- **It tracks itself.** Flakewatch's own CI uploads its results to the live site.
+
+## Tech stack
+
+Java 25 · Spring Boot 4 · PostgreSQL 17 · React 19 + TypeScript · GitHub Actions · Docker ·
+Render + Neon (free tiers)
+
+## Run it locally
 
 You need Docker.
 
@@ -84,16 +108,16 @@ You need Docker.
 git clone https://github.com/Kuroh02/flakewatch && cd flakewatch
 cp .env.example .env
 docker compose up --build
-# open http://localhost:8080
+# then open http://localhost:8080
 ```
 
-Create a project and an upload token (the token is printed once):
+Create a project and an upload token. The token is printed once:
 
 ```bash
 docker compose run --rm app --flakewatch.bootstrap.project=demo --flakewatch.bootstrap.visibility=PUBLIC
 ```
 
-Then send it a real report from the repository's test fixtures:
+Send it a real Surefire report from the test fixtures:
 
 ```bash
 curl -H "Authorization: Bearer <the token>" \
@@ -102,23 +126,39 @@ curl -H "Authorization: Bearer <the token>" \
   http://localhost:8080/api/v1/uploads
 ```
 
-Open `http://localhost:8080/p/demo`. The `testFlaky` test is already marked **Flaky**, because Surefire's re-run passed after a failure.
+Open http://localhost:8080/p/demo. The `testFlaky` test is already marked **Flaky**, because it
+failed and then passed when Surefire re-ran it.
 
-## Running the tests
+## Run the tests
 
 | What | Command |
 |---|---|
-| Java (unit and integration; needs Docker for PostgreSQL) | `./mvnw verify` |
+| Java, unit and integration (needs Docker) | `./mvnw verify` |
 | Core logic only, fast | `./mvnw -pl core test` |
 | Dashboard | `npm --prefix web ci && npm --prefix web test` |
 | GitHub Action | `npm --prefix action test` |
 
-## Checking the docs
+## Project layout
 
-```bash
-node scripts/check-docs.mjs            # requirements ↔ tasks, IDs, links (runs in CI)
-node scripts/check-docs.mjs --strict   # also requires a test for every M1/M2 requirement (from M2)
 ```
+core/       pure Java: report parser, detection rules, failure fingerprints
+server/     Spring Boot: upload API, job queue, read API; serves the dashboard
+web/        React dashboard
+action/     GitHub Action uploader (no dependencies)
+api/        OpenAPI contract
+examples/   the demo project, with deliberately flaky tests
+docs/       design, decisions and planning documents
+```
+
+## Status and roadmap
+
+**v0.1 (live):** uploads, detection, failure groups, the dashboard and the GitHub Action.
+
+**Next, v1.0:** GitHub sign-in and self-service projects, then **quarantine**: a JUnit 5 extension
+and a TestNG listener that stop known-flaky tests from failing builds while Flakewatch keeps
+tracking them.
+
+The full plan, requirements and design documents are listed in [docs/](docs/README.md).
 
 ## License
 
