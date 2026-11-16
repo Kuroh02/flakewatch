@@ -10,8 +10,6 @@ import io.github.chakrabartyaditi2002.flakewatch.projects.TokenService;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -68,11 +66,7 @@ public abstract class AbstractApiIT extends AbstractPostgresIT {
         RestAssured.port = port;
         clock.set(TODAY);
         if (contract == null) {
-            Path spec = Path.of("..", "api", "openapi.yaml");
-            if (!Files.exists(spec)) {
-                spec = Path.of("api", "openapi.yaml");
-            }
-            contract = new OpenApiValidationFilter(spec.toAbsolutePath().toString());
+            contract = ContractFilter.create();
         }
     }
 
