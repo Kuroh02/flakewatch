@@ -9,13 +9,26 @@ spring:
   threads:
     virtual:
       enabled: true
+  servlet:
+    multipart:
+      max-file-size: 20MB      # one file, as uploaded (PLAN §7.2)
+      max-request-size: 50MB   # whole upload request
   datasource:
     hikari:
       maximum-pool-size: 5
       minimum-idle: 0
       idle-timeout: 60000
 
+flakewatch:
+  public-url: ${FLAKEWATCH_PUBLIC_URL:http://localhost:8080}
+  workers: ${FLAKEWATCH_WORKERS:2}
+  retention:
+    executions-days: ${FLAKEWATCH_RETENTION_EXECUTIONS_DAYS:90}
+    raw-files-days: ${FLAKEWATCH_RETENTION_RAW_FILES_DAYS:7}
+    daily-stats-days: 400
+
 server:
+  shutdown: graceful
   tomcat:
     threads:
       max: 20
