@@ -60,6 +60,7 @@ jdbc:postgresql://<host>/flakewatch?sslmode=require
 | `SPRING_DATASOURCE_USERNAME` | the Neon user |
 | `SPRING_DATASOURCE_PASSWORD` | the Neon password |
 | `FLAKEWATCH_PUBLIC_URL` | the Render address, for example `https://flakewatch.onrender.com` |
+| `PORT` | `8080`, the port the app listens on (Render's default is 10000) |
 
 4. Set the **health check path** to `/actuator/health/liveness`.
 5. Deploy. The first start creates the database tables. Open `https://<your-address>/api/v1/version`
@@ -88,11 +89,12 @@ docker run --rm \
   -e SPRING_DATASOURCE_URL='jdbc:postgresql://<host>/flakewatch?sslmode=require' \
   -e SPRING_DATASOURCE_USERNAME='<user>' \
   -e SPRING_DATASOURCE_PASSWORD='<password>' \
+  -e FLAKEWATCH_WORKERS=0 \
   ghcr.io/kuroh02/flakewatch:latest \
   --flakewatch.bootstrap.project=demo --flakewatch.bootstrap.visibility=PUBLIC
 ```
 
-It prints an ingest token **once**. Copy it straight into the demo repository's secrets (next step),
+`FLAKEWATCH_WORKERS=0` stops this one-off copy from processing uploads alongside the live service. It prints an ingest token **once**. Copy it straight into the demo repository's secrets (next step),
 and nowhere else.
 
 Run it again with `--flakewatch.bootstrap.project=flakewatch-self` to get a token for Flakewatch's
