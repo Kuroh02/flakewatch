@@ -47,7 +47,18 @@ jobs:
           cache: maven
 
       - name: Run Maven verify
-        run: ./mvnw -B verify
+        # One re-run for failing tests: a test that passes on the re-run is recorded as flaky in
+        # our own Flakewatch project (dogfooding, NFR-QUAL-004), never silently hidden.
+        run: ./mvnw -B verify -Dsurefire.rerunFailingTestsCount=1
+
+      - name: Upload our own test results to Flakewatch
+        if: ${{ !cancelled() }}
+        uses: ./action
+        with:
+          server-url: ${{ vars.FLAKEWATCH_URL }}
+          token: ${{ secrets.FLAKEWATCH_SELF_INGEST_TOKEN }}
+          files: '**/target/*-reports/TEST-*.xml'
+          job-key: java
 
   web:
     name: Web Frontend
@@ -74,6 +85,21 @@ jobs:
 
       - name: Build
         run: npm --prefix web run build
+
+  action:
+    name: GitHub Action
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 24
+
+      - name: Test the upload action
+        run: npm --prefix action test
 
   image:
     name: Container Image & Security Scan
