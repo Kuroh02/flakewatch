@@ -1,0 +1,13 @@
+{
+  "name": "flakewatch-action",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Uploads JUnit XML results from GitHub Actions to Flakewatch. No runtime dependencies.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  }
+}

@@ -1,0 +1,42 @@
+name: Flakewatch upload
+description: Upload JUnit XML test results to Flakewatch, to find out which failures are flaky and which are real.
+author: Flakewatch
+branding:
+  icon: check-circle
+  color: green
+
+inputs:
+  server-url:
+    description: Flakewatch base URL, for example https://flakewatch.example.com
+    required: true
+  token:
+    description: The project's ingest token. When empty (as on pull requests from forks), the step is skipped.
+    required: true
+  files:
+    description: Glob pattern(s) for JUnit XML files, one per line.
+    required: false
+    default: '**/TEST-*.xml'
+  job-key:
+    description: Unique per job and shard. Defaults to the job's name. Set it for matrix jobs.
+    required: false
+    default: ''
+  variant:
+    description: Optional environment label, such as a browser name or Java version.
+    required: false
+    default: ''
+  fail-on-error:
+    description: Fail this step when the upload fails. Off by default, so Flakewatch never breaks your build.
+    required: false
+    default: 'false'
+  timeout-seconds:
+    description: Total time allowed, including waiting for a sleeping server to wake up.
+    required: false
+    default: '120'
+
+outputs:
+  run-url:
+    description: Link to this run in the Flakewatch dashboard.
+
+runs:
+  using: node24
+  main: index.js
