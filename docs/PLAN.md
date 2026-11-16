@@ -100,7 +100,7 @@ Versions are as of November 2026. At the start of Phase 0, use the newest patch 
 | 8 Observable | Structured logs, Micrometer metrics, split health checks, runbook. | ✅ |
 | 9 Small steps | Walking skeleton deployed in Phase 0; every phase ends deployable; ADRs listed in section 25 and [adr/](adr/). | ✅ |
 
-There are no exceptions. See [section 25](#25-complexity-and-exceptions).
+The slim M1 build (2026-11-16) records its exceptions and plan deviations in [section 25](#25-complexity-and-exceptions).
 
 ## 4. Architecture
 
@@ -963,7 +963,36 @@ Spikes are short, time-boxed experiments that answer one question before we depe
 
 ## 25. Complexity and exceptions
 
-No constitution exceptions are needed for v1.
+The original plan needed no constitution exceptions. The slim M1 build (2026-11-16) does. Each one is written down here, as the constitution's *Exceptions* section requires.
+
+### 25.1 Constitution exceptions
+
+| Rule | What happened | Why | How it gets removed |
+|---|---|---|---|
+| Article 2: tests first | Most of `core` and `server` was written together with its tests, not strictly after a failing test. The GitHub Action and the dashboard logic were built test-first. | The work was done in one large session to reach a live demo. | One-off. All new work is test-first again. |
+| Article 9: small pull requests | The slim M1 arrived as one branch of about 15 task-sized commits, far over 400 lines in total. | Same reason. | Review it commit by commit, or split it into one pull request per commit. |
+| Article 2 gates not yet measured | Coverage and the PIT mutation score have not been measured for the new code. | They couldn't run where the code was written. | T-2.7: run PIT, raise the score to ≥ 75%, add the CI `mutation` job. CI enforces coverage already. |
+
+### 25.2 Plan deviations
+
+| Plan section | Planned | Built instead | Why | Revisit |
+|---|---|---|---|---|
+| §12.1 Pagination | Cursor = base64 of sort key and last ID (keyset) | Cursor = base64 of an offset. Still opaque to clients. | Simpler; fine at demo scale. | NFR-PERF-003 (M3), with 1 million executions |
+| §12.3 Matrix | A token sent to a dashboard read endpoint is rejected | Tokens are ignored on read endpoints; public data is readable by anyone | Nothing to protect on public reads in M1 | M2, with sessions |
+| §8.4 Waking up | An idle worker checks the queue at least every 10 minutes | With no jobs at all, an idle worker waits until an upload wakes it | Stricter version of NFR-COST-001: the database can sleep indefinitely | — |
+| §8.1 Daily jobs | Started by a daily scheduler | Queued on startup and on each upload, once per day (date-keyed) | A sleeping free host can't run a timer | If hosting changes |
+| §7.4 step 1 | Upload set to `PROCESSING` in its own transaction | Upload goes straight from `RECEIVED` to `PROCESSED` or `FAILED` | Simpler; processing takes seconds | When uploads get large |
+| §2, §13.2 Frontend data | TanStack Query and openapi-fetch | A small `useApi` hook and a tiny router; types are still generated from the contract | No new dependencies; the dashboard is read-only | When writes arrive (M2) |
+| §14 Action packaging | TypeScript, bundled to `dist/` | Plain JavaScript with no dependencies; nothing to bundle | Constitution Article 4; nothing can go stale in `dist/` | — |
+| §16 Metrics, §12.4 rate limits, `synthetic.yml`, runbook | In M1 | Deferred | Slim M1 | Tasks T-1.24, T-4.9, T-4.10, T-4.11 |
+| Job payloads and `jsonb` columns | Jackson | A ~250-line JSON helper in `platform.json`, with tests | Avoids depending on one Jackson major version for internal data | — |
+
+### 25.3 Decisions for a human
+
+- **Hand-written XML in tests.** `ReportParserRulesTest` builds a few tiny XML strings to test single parser rules (limits, the quarantine marker, file order). The server scenarios use `SurefireXml`, a builder that writes only the element shapes found in the real Surefire fixture. AGENTS.md says hand-written XML belongs only in `fixtures/malformed/` and `fixtures/malicious/`. Either accept these as rule tests, or move them into fixture files.
+- **Deferred phases.** Phases 5–7 stay in TASKS.md, unticked, marked deferred. The spec is unchanged; M2 requirements still say M2.
+
+### 25.4 Complexity that is worth it
 
 Things that look complex but are justified:
 

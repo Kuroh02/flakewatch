@@ -39,7 +39,7 @@ This file is for AI coding assistants (Claude Code, Copilot, Codex, Cursor and o
 | Replay a property-test failure | `./mvnw -pl core test -Dprops.seed=<seed>` |
 | Web | `npm --prefix web run lint && npm --prefix web test && npm --prefix web run build` |
 | Regenerate API types | `npm --prefix web run gen:api` |
-| Action | `npm --prefix action test && npm --prefix action run build` |
+| Action (no dependencies, no build step) | `npm --prefix action test` |
 | Local stack | `docker compose up --build` |
 | E2E | `npm --prefix e2e test` |
 

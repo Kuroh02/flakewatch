@@ -15,6 +15,16 @@ This is the single, ordered checklist for building v1. Work top to bottom.
 
 Before starting a phase, re-read the spec sections and plan sections it lists.
 
+
+## Status (2026-11-16): slim M1
+
+The plan was cut down to the parts that make a working live demo; see [PLAN §25](PLAN.md#25-complexity-and-exceptions) for every deviation and why.
+
+- **Built:** the core logic (parser, detection, fingerprints), the upload API, the job queue, processing, detection, the read APIs, the dashboard, and the GitHub Action.
+- **Partly done:** tasks with a *Status* line below say exactly what's left.
+- **Deferred:** Phases 5–7 (sign-in, quarantine, performance work), plus rate limits, metrics and the runbook. They stay in this list, unticked, so nothing is lost.
+- **Next:** get CI green on the branch, then follow [GO-LIVE.md](GO-LIVE.md).
+
 ---
 
 ## Phase 0: Foundations (~14 h)
@@ -40,6 +50,7 @@ Before starting a phase, re-read the spec sections and plan sections it lists.
 - [x] **T-0.11** Multi-stage `Dockerfile` (non-root, layered jar, `HEALTHCHECK`), `compose.yaml` (app + PostgreSQL 17) and `.env.example`. Check that the README quickstart works from a fresh clone. — NFR-OPS-001
 - [x] **T-0.12** `ci.yml` with jobs `docs`, `java`, `web` and `image` (build + Trivy scan). Add caching, minimal `permissions:`, actions pinned by SHA, and cancel-in-progress for the same branch. — NFR-SEC-005, NFR-OPS-002
 - [ ] **T-0.13** Production: create the Neon project and the Render service (PLAN §21.3). `deploy.yml`: push `ghcr.io/<you>/flakewatch:<sha>` → trigger Render → wait until `/api/v1/version` returns the SHA → smoke test → roll back to the previous SHA on failure. — NFR-OPS-002
+  - *Status:* Workflow done (and now passes the commit into the image). Still to do: create Neon and Render and add the secrets — see [GO-LIVE.md](GO-LIVE.md).
 
 ### Contract and spikes
 
@@ -66,43 +77,53 @@ Before starting a phase, re-read the spec sections and plan sections it lists.
 ### Schema, tokens, access
 
 - [x] **T-1.1** Flyway `V2` (runs, uploads, files, jobs) and `V3` (test cases, failure groups, executions, daily stats, `pg_trgm`), as in data-model.md. Add a migration integration test. — FR-ING-010
-- [ ] **T-1.2** Tests first: token generation (prefix, 256-bit random, base62), hashing, lookup, revoked → `401`, wrong scope → `403`, `Secret` redacted in logs. Then implement `TokenService` and `TokenAuthenticationFilter`. — NFR-SEC-001, FR-PRJ-005
-- [ ] **T-1.3** Bootstrap command (`--flakewatch.bootstrap.project=…`): creates a project, prints an ingest token once, and exits. Add an integration test. — FR-PRJ-007
-- [ ] **T-1.4** `ProjectAccess`: the single place that decides access. Public/private read rules, and `404` (not `403`) for private projects. Unit tests. — FR-PRJ-004
+- [x] **T-1.2** Tests first: token generation (prefix, 256-bit random, base62), hashing, lookup, revoked → `401`, wrong scope → `403`, `Secret` redacted in logs. Then implement `TokenService` and `TokenAuthenticationFilter`. — NFR-SEC-001, FR-PRJ-005
+- [x] **T-1.3** Bootstrap command (`--flakewatch.bootstrap.project=…`): creates a project, prints an ingest token once, and exits. Add an integration test. — FR-PRJ-007
+- [x] **T-1.4** `ProjectAccess`: the single place that decides access. Public/private read rules, and `404` (not `403`) for private projects. Unit tests. — FR-PRJ-004
 
 ### Parser (`core`)
 
-- [ ] **T-1.5** Tests first: malicious fixtures (XXE, entity expansion, external DTD, 10,000-level nesting, a 1 MB attribute) are all rejected or limited safely. Then build the hardened StAX factory and limits. — NFR-SEC-002
+- [x] **T-1.5** Tests first: malicious fixtures (XXE, entity expansion, external DTD, 10,000-level nesting, a 1 MB attribute) are all rejected or limited safely. Then build the hardened StAX factory and limits. — NFR-SEC-002
 - [ ] **T-1.6** Approval-test harness: each fixture → parse → JSON → compare with `<name>.expected.json`. Write each expected file by reviewing the output carefully, not by copying it blindly. — FR-ING-006
-- [ ] **T-1.7** Implement the streaming `ReportParser`: `testsuites`, `testsuite`, `testcase`, `failure`, `error`, `skipped`, time parsing, `classname` fallback, warnings. Make the Surefire, Gradle, TestNG and Jest fixtures pass. — FR-ING-006, FR-ING-009, FR-ING-010
-- [ ] **T-1.8** Retries: `flakyFailure`, `flakyError`, `rerunFailure`, `rerunError` and repeated entries, with correct execution indexes. — FR-ING-007
-- [ ] **T-1.9** Make the Playwright and WebdriverIO fixtures pass (JavaScript stack traces, file-path class names). — FR-ING-006
-- [ ] **T-1.10** `TestKeys`: test key and method key rules, with a 2,000-character cap plus hash suffix. Property tests: normalising is idempotent; keys are deterministic; the method key is a prefix of the test key. — FR-ING-010
+  - *Status:* Done differently: expectations were reviewed against the XML and written as assertions in `ReportParserFixturesTest`, not as JSON approval files.
+- [x] **T-1.7** Implement the streaming `ReportParser`: `testsuites`, `testsuite`, `testcase`, `failure`, `error`, `skipped`, time parsing, `classname` fallback, warnings. Make the Surefire, Gradle, TestNG and Jest fixtures pass. — FR-ING-006, FR-ING-009, FR-ING-010
+- [x] **T-1.8** Retries: `flakyFailure`, `flakyError`, `rerunFailure`, `rerunError` and repeated entries, with correct execution indexes. — FR-ING-007
+- [x] **T-1.9** Make the Playwright and WebdriverIO fixtures pass (JavaScript stack traces, file-path class names). — FR-ING-006
+- [x] **T-1.10** `TestKeys`: test key and method key rules, with a 2,000-character cap plus hash suffix. Property tests: normalising is idempotent; keys are deterministic; the method key is a prefix of the test key. — FR-ING-010
 - [ ] **T-1.11** Property tests `ParserNeverExplodesProperties` (random bytes, mutated fixtures) and a round trip (`Gens.junitXml()` → parse → same model). — NFR-SEC-002, FR-ING-009
+  - *Status:* Never-explodes properties done. Still to do: the generated-XML round trip.
 
 ### Upload API
 
-- [ ] **T-1.12** Tests first (`@WebMvcTest` + contract validation): metadata errors list every field; too many files; size limits → `413`; wrong root element → `400 not-a-junit-report`; gzip handling; zip-bomb limit. — FR-ING-001, FR-ING-002, FR-ING-008, NFR-SEC-002
-- [ ] **T-1.13** Implement the upload controller: validation, streaming limits, root-element check, content hash. — FR-ING-001, FR-ING-002, FR-ING-008
+- [x] **T-1.12** Tests first (`@WebMvcTest` + contract validation): metadata errors list every field; too many files; size limits → `413`; wrong root element → `400 not-a-junit-report`; gzip handling; zip-bomb limit. — FR-ING-001, FR-ING-002, FR-ING-008, NFR-SEC-002
+- [x] **T-1.13** Implement the upload controller: validation, streaming limits, root-element check, content hash. — FR-ING-001, FR-ING-002, FR-ING-008
 - [ ] **T-1.14** Tests first: `IdempotentUploadIT` (the same upload 3 times; 8 threads at once; different content → `409`). Then implement the accept transaction: upsert run, insert upload, files and job. — FR-ING-003, FR-ING-004, NFR-REL-001
-- [ ] **T-1.15** Group uploads across shards and attempts into runs; return `409 run-metadata-mismatch` on conflicting metadata. — FR-ING-011
-- [ ] **T-1.16** Upload status endpoint `GET /uploads/{id}`, validated against the contract. — FR-ING-005
+  - *Status:* Accept transaction and repeat-upload scenarios done (`UploadFromCiIT`). Still to do: the 8-threads-at-once case.
+- [x] **T-1.15** Group uploads across shards and attempts into runs; return `409 run-metadata-mismatch` on conflicting metadata. — FR-ING-011
+- [x] **T-1.16** Upload status endpoint `GET /uploads/{id}`, validated against the contract. — FR-ING-005
 
 ### Job queue
 
 - [ ] **T-1.17** Tests first: `QueueConcurrencyIT`, `LeaseTakeoverIT` (with `MutableClock`), `PoisonPillIT`, and a unit test for backoff with seeded jitter. — NFR-REL-001, NFR-REL-002
-- [ ] **T-1.18** Implement `JobRepository` (enqueue with dedupe, claim, complete with fencing, fail with backoff, dead) and `JobWorker` (thread pool, plus `runUntilIdle()` for tests). — NFR-REL-001
+  - *Status:* Concurrency, lease takeover and poison pill done (`ReliableProcessingIT`). Still to do: a unit test for backoff with seeded jitter.
+- [x] **T-1.18** Implement `JobRepository` (enqueue with dedupe, claim, complete with fencing, fail with backoff, dead) and `JobWorker` (thread pool, plus `runUntilIdle()` for tests). — NFR-REL-001
 - [ ] **T-1.19** Wake-up strategy: signal after commit, a next-due timer capped at 10 minutes, and a claim at startup. Test that an idle worker sends no SQL for 10 simulated minutes, by counting statements through a datasource proxy. — NFR-COST-001
+  - *Status:* Wake-up strategy done; an idle worker with no jobs never queries the database. Still to do: the statement-counting test.
 - [ ] **T-1.20** Graceful shutdown and lease release; `ShutdownReleasesLeaseIT`. — NFR-REL-003
+  - *Status:* Graceful shutdown and lease release done. Still to do: `ShutdownReleasesLeaseIT`.
 
 ### Processing
 
-- [ ] **T-1.21** Tests first: `ReprocessIsHarmlessIT`. Then `ProcessUploadHandler`: batches of 1,000, upsert test cases, insert executions with `on conflict do nothing`, daily stats from inserted rows only, upload `PROCESSED` with summary and warnings, and `DEAD` → upload `FAILED` with a reason. — FR-ING-005, FR-ING-010, NFR-REL-002
-- [ ] **T-1.22** Trim failure details (4 KB message, 16 KB stack trace), and store them only for failures. — FR-ING-010, NFR-COST-001
+- [x] **T-1.21** Tests first: `ReprocessIsHarmlessIT`. Then `ProcessUploadHandler`: batches of 1,000, upsert test cases, insert executions with `on conflict do nothing`, daily stats from inserted rows only, upload `PROCESSED` with summary and warnings, and `DEAD` → upload `FAILED` with a reason. — FR-ING-005, FR-ING-010, NFR-REL-002
+- [x] **T-1.22** Trim failure details (4 KB message, 16 KB stack trace), and store them only for failures. — FR-ING-010, NFR-COST-001
 - [ ] **T-1.23** Retention jobs `PURGE_RAW_FILES` (7 days) and `PURGE_OLD_DATA` (90 / 400 / 7 / 30 days), with daily dedupe keys. Integration tests move the `MutableClock`. — FR-ING-012, NFR-DATA-001
+  - *Status:* Retention jobs done; they run once a day when the app wakes (startup or upload). Still to do: integration tests that move the clock.
 - [ ] **T-1.24** Metrics: uploads counter, upload bytes, job timer, pending gauge, oldest-pending age. Test that they are registered and change. — NFR-OBS-002
+  - *Status:* Deferred (slim M1).
 - [ ] **T-1.25** Performance check: an integration test processes a generated 10,000-test upload and logs the time, failing above 15 s on CI. Measure accept latency with `perf/upload.js` (k6). — NFR-PERF-001, NFR-PERF-002
+  - *Status:* Deferred (slim M1).
 - [ ] **T-1.26** Write `docs/guides/upload-from-any-ci.md` with a `curl` example, and try it against production. — FR-CI-006
+  - *Status:* Guide written ([upload-from-any-ci.md](guides/upload-from-any-ci.md)). Still to do: try it against production.
 
 ### Exit criteria
 
@@ -119,34 +140,38 @@ Before starting a phase, re-read the spec sections and plan sections it lists.
 
 ### Classifier (`core`)
 
-- [ ] **T-2.1** Turn worked examples E01–E17 into `DetectionExamplesTest`. All fail at first. — FR-DET-001, FR-DET-002, FR-DET-003, FR-DET-004, FR-DET-005
-- [ ] **T-2.2** History generators (`Gens.histories()` with variants, branches, commits, retries, skips and times). Write PROP-DET-01 to PROP-DET-11 as property tests (failing). — FR-DET-006
-- [ ] **T-2.3** Implement data preparation: window, dedupe, total ordering, variant split, final outcomes. — FR-DET-006
-- [ ] **T-2.4** Implement evidence (`RETRY_PASS`, `SAME_COMMIT_MIXED`) with explanations, keeping the 5 most recent. — FR-DET-002, FR-DET-003, FR-DET-007
-- [ ] **T-2.5** Implement rules 1–6 with settings, and combine variants in attention order. — FR-DET-001, FR-DET-004, FR-DET-005
-- [ ] **T-2.6** Impact and flip rate. — FR-DET-012
+- [x] **T-2.1** Turn worked examples E01–E17 into `DetectionExamplesTest`. All fail at first. — FR-DET-001, FR-DET-002, FR-DET-003, FR-DET-004, FR-DET-005
+- [x] **T-2.2** History generators (`Gens.histories()` with variants, branches, commits, retries, skips and times). Write PROP-DET-01 to PROP-DET-11 as property tests (failing). — FR-DET-006
+- [x] **T-2.3** Implement data preparation: window, dedupe, total ordering, variant split, final outcomes. — FR-DET-006
+- [x] **T-2.4** Implement evidence (`RETRY_PASS`, `SAME_COMMIT_MIXED`) with explanations, keeping the 5 most recent. — FR-DET-002, FR-DET-003, FR-DET-007
+- [x] **T-2.5** Implement rules 1–6 with settings, and combine variants in attention order. — FR-DET-001, FR-DET-004, FR-DET-005
+- [x] **T-2.6** Impact and flip rate. — FR-DET-012
 - [ ] **T-2.7** Run PIT on `core` and raise the mutation score to ≥ 75%. Add the CI `mutation` job. — NFR-QUAL-001
+  - *Status:* Not verified yet: PIT has not been run on the new `core` code. Run it and add the CI job.
 
 ### Fingerprinting (`core`)
 
-- [ ] **T-2.8** Tests first: PROP-FP-01 to PROP-FP-05 and an example table (Java and JavaScript stacks). Then `MessageNormalizer`, `FrameFilter` and `Fingerprinter`. — FR-GRP-001, FR-GRP-002
-- [ ] **T-2.9** Wire fingerprinting into `ProcessUploadHandler`: upsert `failure_groups`, and count occurrences from inserted rows only. Integration test. — FR-GRP-001, NFR-REL-002
+- [x] **T-2.8** Tests first: PROP-FP-01 to PROP-FP-05 and an example table (Java and JavaScript stacks). Then `MessageNormalizer`, `FrameFilter` and `Fingerprinter`. — FR-GRP-001, FR-GRP-002
+- [x] **T-2.9** Wire fingerprinting into `ProcessUploadHandler`: upsert `failure_groups`, and count occurrences from inserted rows only. Integration test. — FR-GRP-001, NFR-REL-002
 
 ### Status persistence
 
 - [ ] **T-2.10** Flyway `V4`. `ReclassifyTestsHandler`: load window executions per batch, classify, upsert statuses, insert events on change. Integration test: upload examples E01–E17 as real uploads and check the stored statuses. — FR-DET-008, FR-DET-009
+  - *Status:* Done; covered by real-upload scenarios in `DetectionOverTimeIT` rather than replaying E01–E17 as uploads.
 - [ ] **T-2.11** The reclassification selection rule (detection-rules §11). Integration test showing that skipped tests still end up with the correct status (backs PROP-DET-08). — FR-DET-008, NFR-PERF-002
-- [ ] **T-2.12** `RECLASSIFY_AGING` daily job and `project_daily_snapshots`. Integration test: move the clock 15 days and the evidence expires. — FR-DET-010
+  - *Status:* Selection rule done. Still to do: the integration test for skipped tests.
+- [x] **T-2.12** `RECLASSIFY_AGING` daily job and `project_daily_snapshots`. Integration test: move the clock 15 days and the evidence expires. — FR-DET-010
 - [ ] **T-2.13** Detection settings model: defaults, range validation, stored in `projects.settings`, plus the `RECLASSIFY_PROJECT` job. (The API and UI come in Phase 5.) — FR-DET-011
+  - *Status:* Defaults and stored overrides are read. `RECLASSIFY_PROJECT` moves to Phase 5 with the settings API.
 
 ### Read APIs for the dashboard
 
-- [ ] **T-2.14** Tests list API: status filter, trigram search, sort by impact, recent or name, cursor pagination. Contract tests. — FR-UI-002
-- [ ] **T-2.15** Test detail and executions APIs: variants, evidence, 50-point timeline, failure groups, duration trend. — FR-UI-003, FR-DET-007
-- [ ] **T-2.16** Runs list and detail APIs, with failure labels (known flaky, new failure, broken, passed on retry). — FR-UI-004
-- [ ] **T-2.17** Failure groups list and detail APIs. — FR-GRP-003, FR-UI-005
-- [ ] **T-2.18** Project summary API: counts, 30-day trend from snapshots, recent runs. — FR-UI-001
-- [ ] **T-2.19** `AuthorizationMatrixIT` skeleton: reads every operation from `openapi.yaml` and fails if one has no matrix entry. Fill in entries for the upload and read endpoints. — NFR-SEC-003, FR-PRJ-004, FR-PRJ-005
+- [x] **T-2.14** Tests list API: status filter, trigram search, sort by impact, recent or name, cursor pagination. Contract tests. — FR-UI-002
+- [x] **T-2.15** Test detail and executions APIs: variants, evidence, 50-point timeline, failure groups, duration trend. — FR-UI-003, FR-DET-007
+- [x] **T-2.16** Runs list and detail APIs, with failure labels (known flaky, new failure, broken, passed on retry). — FR-UI-004
+- [x] **T-2.17** Failure groups list and detail APIs. — FR-GRP-003, FR-UI-005
+- [x] **T-2.18** Project summary API: counts, 30-day trend from snapshots, recent runs. — FR-UI-001
+- [x] **T-2.19** `AuthorizationMatrixIT` skeleton: reads every operation from `openapi.yaml` and fails if one has no matrix entry. Fill in entries for the upload and read endpoints. — NFR-SEC-003, FR-PRJ-004, FR-PRJ-005
 
 ### Exit criteria
 
@@ -162,18 +187,22 @@ Before starting a phase, re-read the spec sections and plan sections it lists.
 **Read first:** SPEC US-02 to US-05, US-09, FR-UI, NFR-A11Y · PLAN §13
 
 - [ ] **T-3.1** Generate TypeScript types from `openapi.yaml` (openapi-typescript) and a typed client (openapi-fetch). CI fails if the generated types are out of date. — NFR-QUAL-003
-- [ ] **T-3.2** App shell: routing, layout, header, error boundary, shared loading/empty/error components, and a URL-state hook with tests. — FR-UI-007
-- [ ] **T-3.3** Components: status badge, timeline strip and sparkline, using icon + text + shape, with a hidden data table. Component tests check accessible roles and names. — NFR-A11Y-001, FR-UI-003
-- [ ] **T-3.4** Home page: list of public projects. — FR-UI-001
-- [ ] **T-3.5** Project overview page. — FR-UI-001
-- [ ] **T-3.6** Tests list page: filters, debounced search, sort, pagination, all in the URL. — FR-UI-002, FR-UI-007
-- [ ] **T-3.7** Test detail page: variants, evidence with run links, timeline, failure groups, durations. — FR-UI-003, FR-DET-007
-- [ ] **T-3.8** Runs list and run detail pages, with labelled failures. — FR-UI-004
-- [ ] **T-3.9** Failure group pages. — FR-UI-005
-- [ ] **T-3.10** Dark mode, a responsive layout that works at 360 px wide, visible focus styles, reduced motion. — NFR-A11Y-001
+  - *Status:* Types were generated in Phase 0 and are used everywhere. Still to do: a CI check that they are up to date. TanStack Query and openapi-fetch were not added (see PLAN §25).
+- [x] **T-3.2** App shell: routing, layout, header, error boundary, shared loading/empty/error components, and a URL-state hook with tests. — FR-UI-007
+- [x] **T-3.3** Components: status badge, timeline strip and sparkline, using icon + text + shape, with a hidden data table. Component tests check accessible roles and names. — NFR-A11Y-001, FR-UI-003
+- [x] **T-3.4** Home page: list of public projects. — FR-UI-001
+- [x] **T-3.5** Project overview page. — FR-UI-001
+- [x] **T-3.6** Tests list page: filters, debounced search, sort, pagination, all in the URL. — FR-UI-002, FR-UI-007
+- [x] **T-3.7** Test detail page: variants, evidence with run links, timeline, failure groups, durations. — FR-UI-003, FR-DET-007
+- [x] **T-3.8** Runs list and run detail pages, with labelled failures. — FR-UI-004
+- [x] **T-3.9** Failure group pages. — FR-UI-005
+- [x] **T-3.10** Dark mode, a responsive layout that works at 360 px wide, visible focus styles, reduced motion. — NFR-A11Y-001
 - [ ] **T-3.11** End-to-end setup in `e2e/`: start the compose stack, seed it by uploading fixtures through the API, and write Playwright journeys for US-02, US-03, US-04, US-05 and US-09. Run an axe scan on every page, failing on serious or critical issues. Add the CI `e2e` job. — NFR-A11Y-001, FR-UI-007
+  - *Status:* Journeys were checked in Chromium against a contract-shaped fake API during development. Still to do: commit them as the `e2e/` Playwright suite with axe.
 - [ ] **T-3.12** XSS check: a test named `<img src=x onerror=alert(1)>` renders as plain text. Add a lint rule banning `dangerouslySetInnerHTML`. — NFR-SEC-006
+  - *Status:* React escapes all text and nothing uses `dangerouslySetInnerHTML`. Still to do: the lint rule and the XSS test.
 - [ ] **T-3.13** Serve the SPA from Spring: static files, history fallback for client routes, long cache headers for hashed assets. — NFR-OPS-001
+  - *Status:* History fallback done. Still to do: long cache headers for hashed assets.
 
 ### Exit criteria
 
@@ -187,18 +216,24 @@ Before starting a phase, re-read the spec sections and plan sections it lists.
 **Goal:** real teams (and the demo repository) can send results with one CI step, and the live link stays full of real data.
 **Read first:** SPEC US-01, FR-CI · PLAN §14, §21.4, §21.5 · ADR-0006
 
-- [ ] **T-4.1** Action skeleton in `action/`: TypeScript, `action.yml` with `runs.using: node24`, a bundler, Vitest. CI job that fails if `dist/` is out of date. — FR-CI-001
-- [ ] **T-4.2** Tests first: metadata from the environment for push, pull request and re-run (attempt 2) events; missing token → skip notice; no files → warning. Then implement. — FR-CI-001, FR-CI-004
-- [ ] **T-4.3** Tests first, against a local HTTP test server: retries on network errors, `429` and `5xx`, with backoff and `Retry-After`; the time budget; fail-open versus `fail-on-error`; token masking. Then implement. — FR-CI-002, FR-CI-003
-- [ ] **T-4.4** Job summary with counts and the run link. — FR-CI-005
-- [ ] **T-4.5** Dogfooding: this repository's `ci.yml` uses `./action` to upload its own results (with Surefire `rerunFailingTestsCount=1`) to the `flakewatch-self` project. — NFR-QUAL-004
+- [x] **T-4.1** Action skeleton in `action/`: TypeScript, `action.yml` with `runs.using: node24`, a bundler, Vitest. CI job that fails if `dist/` is out of date. — FR-CI-001
+- [x] **T-4.2** Tests first: metadata from the environment for push, pull request and re-run (attempt 2) events; missing token → skip notice; no files → warning. Then implement. — FR-CI-001, FR-CI-004
+- [x] **T-4.3** Tests first, against a local HTTP test server: retries on network errors, `429` and `5xx`, with backoff and `Retry-After`; the time budget; fail-open versus `fail-on-error`; token masking. Then implement. — FR-CI-002, FR-CI-003
+- [x] **T-4.4** Job summary with counts and the run link. — FR-CI-005
+- [x] **T-4.5** Dogfooding: this repository's `ci.yml` uses `./action` to upload its own results (with Surefire `rerunFailingTestsCount=1`) to the `flakewatch-self` project. — NFR-QUAL-004
 - [ ] **T-4.6** Release `action-v1.0.0` and a moving `action-v1` tag. Write the action's README. — FR-CI-001
+  - *Status:* After CI is green: tag `action-v1.0.0`. The action README is written.
 - [ ] **T-4.7** Add a `Jenkinsfile` example to the upload guide, and try it with a local Jenkins container. — FR-CI-006
-- [ ] **T-4.8** Create the demo repository `flakewatch-demo` (PLAN §21.5): the test set, a schedule every 3 hours, two variants, a keep-alive workflow, uploads to the `demo` project. — FR-DET-002, FR-DET-004, FR-DET-005
+  - *Status:* Jenkinsfile example written. Still to do: try it on a local Jenkins.
+- [x] **T-4.8** Create the demo repository `flakewatch-demo` (PLAN §21.5): the test set, a schedule every 3 hours, two variants, a keep-alive workflow, uploads to the `demo` project. — FR-DET-002, FR-DET-004, FR-DET-005
 - [ ] **T-4.9** Rate limits with Bucket4j: uploads per token, public reads per IP, `429` with `Retry-After`. Tests. — NFR-SEC-004
+  - *Status:* Deferred (slim M1).
 - [ ] **T-4.10** Production hardening: Hikari idle settings, JVM flags, baseline security headers (CSP, `X-Content-Type-Options`, `Referrer-Policy`), and `synthetic.yml`. — NFR-COST-001, NFR-PERF-004, NFR-OBS-002
+  - *Status:* Partly done (Hikari idle settings, JVM flags). Security headers and `synthetic.yml` deferred.
 - [ ] **T-4.11** Write `docs/RUNBOOK.md`: deploy, roll back, rotate tokens and secrets, reprocess `DEAD` jobs, inspect the queue, notes on restoring the database. — NFR-OPS-002
+  - *Status:* Deferred: [GO-LIVE.md](GO-LIVE.md) covers first deploy; a full runbook comes later.
 - [ ] **T-4.12** README: live link, screenshots or a GIF, "how it works", the architecture diagram, local quickstart. Tag `v0.1.0`. — NFR-OPS-001
+  - *Status:* README updated. Tag `v0.1.0` once the live demo works.
 
 ### Exit criteria (M1: Live demo)
 
@@ -209,6 +244,8 @@ Before starting a phase, re-read the spec sections and plan sections it lists.
 ---
 
 ## Phase 5: Accounts and projects (~14 h)
+
+> **Deferred (slim M1, 2026-11-16).** Tasks stay here unchanged so nothing is lost. Pick this phase up after the live demo works.
 
 **Goal:** people can sign in, create projects and manage tokens and settings themselves.
 **Read first:** SPEC US-06, FR-PRJ, NFR-SEC-006 · PLAN §12.3, §15 · ADR-0009
@@ -232,6 +269,8 @@ Before starting a phase, re-read the spec sections and plan sections it lists.
 ---
 
 ## Phase 6: Quarantine → M2 (~18 h)
+
+> **Deferred (slim M1, 2026-11-16).** Tasks stay here unchanged so nothing is lost. Pick this phase up after the live demo works.
 
 **Goal:** teams can quarantine flaky tests so they stop breaking builds, while Flakewatch keeps tracking them.
 **Read first:** SPEC US-07, US-08, FR-QUA, FR-ING-013 · PLAN §11 · glossary "Quarantine"
@@ -258,6 +297,8 @@ Before starting a phase, re-read the spec sections and plan sections it lists.
 ---
 
 ## Phase 7: Proof and polish → M3 (~16 h)
+
+> **Deferred (slim M1, 2026-11-16).** Tasks stay here unchanged so nothing is lost. Pick this phase up after the live demo works.
 
 **Goal:** measured performance, a faster cold start, and a portfolio-ready story.
 **Read first:** PLAN §17, §21.6, §26

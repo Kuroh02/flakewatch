@@ -7,5 +7,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Added
 
+- Report parser for JUnit XML from Surefire, Gradle, TestNG, Playwright, WebdriverIO and jest-junit, including retries, with DTDs rejected and size limits enforced.
+- Evidence-based flaky detection (Stable, Flaky, Suspected, Failing, Broken, Not enough data) per environment, with impact and flip rate.
+- Failure grouping by fingerprint.
+- Upload API with safe repeats, a PostgreSQL job queue with leases and retries, and background processing.
+- Read API and dashboard: overview, tests, test detail with evidence and timeline, runs with labelled failures, failure groups.
+- GitHub Action uploader that never breaks the build, plus a `curl` and Jenkins guide.
+- A demo project with deliberately flaky tests, and a go-live guide.
+
 - Project documentation: constitution, product spec, implementation plan, task list, detection rules, data model, API contract, ADRs 0001–0009, workflow guide, templates, and the first feature spec (`specs/001-ci-feedback`).
 - `scripts/check-docs.mjs`: requirement traceability and link checker.
