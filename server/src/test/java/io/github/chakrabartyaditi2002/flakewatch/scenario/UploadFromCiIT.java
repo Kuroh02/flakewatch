@@ -35,7 +35,9 @@ class UploadFromCiIT extends AbstractApiIT {
 
         processQueuedJobs();
 
-        // The sample has: 3 passed (one only after a Surefire re-run), 2 failed, 1 errored, 1 skipped
+        // The sample has: 3 passed (one only after a Surefire re-run), 2 failed, 1 errored, 1 skipped.
+        // Surefire re-ran all 4 tests that failed first time (testFlaky, testFailing,
+        // testParameterized[2], testErroring), so 4 were retried: "needed at least one retry".
         statusOf(token, uploadId).then().statusCode(200)
                 .body("status", equalTo("PROCESSED"))
                 .body("summary.tests", equalTo(7))
@@ -43,7 +45,7 @@ class UploadFromCiIT extends AbstractApiIT {
                 .body("summary.failed", equalTo(2))
                 .body("summary.errored", equalTo(1))
                 .body("summary.skipped", equalTo(1))
-                .body("summary.retried", equalTo(1));
+                .body("summary.retried", equalTo(4));
     }
 
     @Test
