@@ -1,6 +1,7 @@
 package io.github.chakrabartyaditi2002.flakewatch.tests;
 
 import io.github.chakrabartyaditi2002.flakewatch.platform.db.Db;
+import io.github.chakrabartyaditi2002.flakewatch.platform.db.SqlArray;
 import io.github.chakrabartyaditi2002.flakewatch.platform.db.PageRequest;
 import io.github.chakrabartyaditi2002.flakewatch.platform.error.ApiException;
 import io.github.chakrabartyaditi2002.flakewatch.platform.json.Json;
@@ -15,7 +16,6 @@ import java.util.Optional;
 import java.util.Set;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.jdbc.core.support.SqlArrayValue;
 import org.springframework.stereotype.Component;
 
 /** Read side for test cases (FR-UI-002, FR-UI-003, FR-DET-007, FR-DET-012). Every query is scoped by project. */
@@ -65,7 +65,7 @@ public class TestQueries {
                  offset :offset limit :limit
                 """.formatted(order))
                 .param("project", projectId)
-                .param("statuses", new SqlArrayValue("text", statuses.toArray()))
+                .param("statuses", SqlArray.of("text", statuses.toArray()))
                 .param("like", like)
                 .param("offset", page.offset())
                 .param("limit", page.fetchSize())

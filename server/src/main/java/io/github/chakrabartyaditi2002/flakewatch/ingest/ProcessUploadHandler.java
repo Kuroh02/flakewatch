@@ -17,6 +17,7 @@ import io.github.chakrabartyaditi2002.flakewatch.jobs.Job;
 import io.github.chakrabartyaditi2002.flakewatch.jobs.JobHandler;
 import io.github.chakrabartyaditi2002.flakewatch.jobs.JobKinds;
 import io.github.chakrabartyaditi2002.flakewatch.platform.db.Db;
+import io.github.chakrabartyaditi2002.flakewatch.platform.db.SqlArray;
 import io.github.chakrabartyaditi2002.flakewatch.platform.json.Json;
 import java.time.Clock;
 import java.time.Instant;
@@ -33,7 +34,6 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.jdbc.core.support.SqlArrayValue;
 import org.springframework.stereotype.Component;
 
 /**
@@ -213,12 +213,12 @@ public class ProcessUploadHandler implements JobHandler {
                 """)
                 .param("project", upload.projectId())
                 .param("at", Db.ts(upload.executedAt()))
-                .param("h", new SqlArrayValue("text", (Object[]) hashes))
-                .param("k", new SqlArrayValue("text", (Object[]) keys))
-                .param("m", new SqlArrayValue("text", (Object[]) methodKeys))
-                .param("s", new SqlArrayValue("text", (Object[]) suites))
-                .param("n", new SqlArrayValue("text", (Object[]) names))
-                .param("f", new SqlArrayValue("text", (Object[]) fileNames))
+                .param("h", SqlArray.of("text", (Object[]) hashes))
+                .param("k", SqlArray.of("text", (Object[]) keys))
+                .param("m", SqlArray.of("text", (Object[]) methodKeys))
+                .param("s", SqlArray.of("text", (Object[]) suites))
+                .param("n", SqlArray.of("text", (Object[]) names))
+                .param("f", SqlArray.of("text", (Object[]) fileNames))
                 .query((rs, i) -> Map.entry(rs.getString("h"), rs.getLong("id")))
                 .list()
                 .forEach(e -> idByHash.put(e.getKey(), e.getValue()));
@@ -284,16 +284,16 @@ public class ProcessUploadHandler implements JobHandler {
                 .param("upload", upload.id())
                 .param("run", upload.runId())
                 .param("at", Db.ts(upload.executedAt()))
-                .param("tc", new SqlArrayValue("bigint", tc.toArray()))
-                .param("idx", new SqlArrayValue("integer", idx.toArray()))
-                .param("fin", new SqlArrayValue("boolean", fin.toArray()))
-                .param("st", new SqlArrayValue("text", st.toArray()))
-                .param("q", new SqlArrayValue("boolean", q.toArray()))
-                .param("dur", new SqlArrayValue("integer", dur.toArray()))
-                .param("grp", new SqlArrayValue("bigint", grp.toArray()))
-                .param("ft", new SqlArrayValue("text", ft.toArray()))
-                .param("fm", new SqlArrayValue("text", fm.toArray()))
-                .param("stack", new SqlArrayValue("text", stack.toArray()))
+                .param("tc", SqlArray.of("bigint", tc.toArray()))
+                .param("idx", SqlArray.of("integer", idx.toArray()))
+                .param("fin", SqlArray.of("boolean", fin.toArray()))
+                .param("st", SqlArray.of("text", st.toArray()))
+                .param("q", SqlArray.of("boolean", q.toArray()))
+                .param("dur", SqlArray.of("integer", dur.toArray()))
+                .param("grp", SqlArray.of("bigint", grp.toArray()))
+                .param("ft", SqlArray.of("text", ft.toArray()))
+                .param("fm", SqlArray.of("text", fm.toArray()))
+                .param("stack", SqlArray.of("text", stack.toArray()))
                 .query((rs, i) -> new Inserted(
                         rs.getLong("test_case_id"),
                         rs.getInt("execution_index"),
@@ -338,7 +338,7 @@ public class ProcessUploadHandler implements JobHandler {
                 .param("type", fp.failureType())
                 .param("normalized", fp.normalizedMessage())
                 .param("sample", sample)
-                .param("frames", new SqlArrayValue("text", fp.topFrames().toArray()))
+                .param("frames", SqlArray.of("text", fp.topFrames().toArray()))
                 .param("at", Db.ts(upload.executedAt()))
                 .query(Long.class)
                 .single();
@@ -392,12 +392,12 @@ public class ProcessUploadHandler implements JobHandler {
                 .param("project", upload.projectId())
                 .param("day", LocalDate.ofInstant(upload.executedAt(), ZoneOffset.UTC))
                 .param("defaultBranch", upload.branch().equals(upload.defaultBranch()))
-                .param("tc", new SqlArrayValue("bigint", ids))
-                .param("p", new SqlArrayValue("integer", passed))
-                .param("f", new SqlArrayValue("integer", failed))
-                .param("s", new SqlArrayValue("integer", skipped))
-                .param("r", new SqlArrayValue("integer", retried))
-                .param("d", new SqlArrayValue("bigint", duration))
+                .param("tc", SqlArray.of("bigint", ids))
+                .param("p", SqlArray.of("integer", passed))
+                .param("f", SqlArray.of("integer", failed))
+                .param("s", SqlArray.of("integer", skipped))
+                .param("r", SqlArray.of("integer", retried))
+                .param("d", SqlArray.of("bigint", duration))
                 .update();
     }
 

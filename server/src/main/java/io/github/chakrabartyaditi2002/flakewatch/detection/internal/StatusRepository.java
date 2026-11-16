@@ -6,6 +6,7 @@ import io.github.chakrabartyaditi2002.flakewatch.core.detection.Evidence;
 import io.github.chakrabartyaditi2002.flakewatch.core.detection.Execution;
 import io.github.chakrabartyaditi2002.flakewatch.core.report.ExecutionStatus;
 import io.github.chakrabartyaditi2002.flakewatch.platform.db.Db;
+import io.github.chakrabartyaditi2002.flakewatch.platform.db.SqlArray;
 import io.github.chakrabartyaditi2002.flakewatch.platform.json.Json;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -17,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.springframework.jdbc.core.simple.JdbcClient;
-import org.springframework.jdbc.core.support.SqlArrayValue;
 import org.springframework.stereotype.Repository;
 
 /** Reads executions for the classifier and writes statuses, events and daily snapshots. */
@@ -38,7 +38,7 @@ public class StatusRepository {
                  where tc.id = any(:ids)
                    and (ts.test_case_id is null or ts.status <> 'STABLE' or ts.last_failure_at >= :windowStart)
                 """)
-                .param("ids", new SqlArrayValue("bigint", testIds.toArray()))
+                .param("ids", SqlArray.of("bigint", testIds.toArray()))
                 .param("windowStart", Db.ts(windowStart))
                 .query(Long.class)
                 .list();
@@ -60,7 +60,7 @@ public class StatusRepository {
                 ) recent
                 where n <= :max
                 """)
-                .param("ids", new SqlArrayValue("bigint", testIds.toArray()))
+                .param("ids", SqlArray.of("bigint", testIds.toArray()))
                 .param("windowStart", Db.ts(windowStart))
                 .param("max", DetectionSettings.MAX_EXECUTIONS_PER_VARIANT)
                 .query((rs, i) -> Map.entry(
@@ -85,7 +85,7 @@ public class StatusRepository {
     public Map<Long, String> currentStatuses(Collection<Long> testIds) {
         Map<Long, String> out = new HashMap<>();
         jdbc.sql("select test_case_id, status from test_status where test_case_id = any(:ids)")
-                .param("ids", new SqlArrayValue("bigint", testIds.toArray()))
+                .param("ids", SqlArray.of("bigint", testIds.toArray()))
                 .query((rs, i) -> Map.entry(rs.getLong("test_case_id"), rs.getString("status")))
                 .list()
                 .forEach(e -> out.put(e.getKey(), e.getValue()));
