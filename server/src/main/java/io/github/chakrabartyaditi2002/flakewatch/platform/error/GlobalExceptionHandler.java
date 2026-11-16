@@ -1,6 +1,7 @@
 package io.github.chakrabartyaditi2002.flakewatch.platform.error;
 
 import io.github.chakrabartyaditi2002.flakewatch.platform.logging.RequestIdFilter;
+import java.net.URI;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,8 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final URI ABOUT_BLANK = URI.create("about:blank");
+
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     public record FieldError(String field, String message) {}
@@ -42,7 +45,7 @@ public class GlobalExceptionHandler {
 
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(ex.getStatus(), ex.getDetail());
         problemDetail.setProperty("code", ex.getCode());
-        attachRequestId(problemDetail);
+        complete(problemDetail);
 
         return ResponseEntity
                 .status(ex.getStatus())
@@ -61,7 +64,7 @@ public class GlobalExceptionHandler {
                 .map(err -> new FieldError(err.getField(), err.getDefaultMessage()))
                 .toList();
         problemDetail.setProperty("errors", fieldErrors);
-        attachRequestId(problemDetail);
+        complete(problemDetail);
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
@@ -76,7 +79,7 @@ public class GlobalExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Validation failed");
         problemDetail.setProperty("code", "validation-error");
         problemDetail.setProperty("errors", ex.getErrors());
-        attachRequestId(problemDetail);
+        complete(problemDetail);
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
@@ -117,7 +120,7 @@ public class GlobalExceptionHandler {
 
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, detail);
         problemDetail.setProperty("code", code);
-        attachRequestId(problemDetail);
+        complete(problemDetail);
 
         return ResponseEntity
                 .status(status)
@@ -146,7 +149,7 @@ public class GlobalExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
                 HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
         problemDetail.setProperty("code", "internal-error");
-        attachRequestId(problemDetail);
+        complete(problemDetail);
 
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -154,7 +157,14 @@ public class GlobalExceptionHandler {
                 .body(problemDetail);
     }
 
-    private void attachRequestId(ProblemDetail problemDetail) {
+    /**
+     * Fills the fields every error response carries: {@code type} (Spring 7 leaves it unset, and
+     * the contract requires it; RFC 9457 defines "unset" as about:blank) and the request id.
+     */
+    private void complete(ProblemDetail problemDetail) {
+        if (problemDetail.getType() == null) {
+            problemDetail.setType(ABOUT_BLANK);
+        }
         String requestId = MDC.get(RequestIdFilter.MDC_KEY);
         if (requestId != null && !requestId.isBlank()) {
             problemDetail.setProperty(RequestIdFilter.MDC_KEY, requestId);

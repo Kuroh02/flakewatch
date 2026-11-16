@@ -45,6 +45,9 @@ class GlobalExceptionHandlerTest {
         assertThat(body.getDetail()).isEqualTo("An upload with this idempotency key already exists with different contents");
         assertThat(body.getProperties()).containsEntry("code", "duplicate-upload-different-content");
         assertThat(body.getProperties()).containsEntry("requestId", "test-req-999");
+        // The contract makes `type` required. Spring 7 leaves it unset (so it would be left out
+        // of the JSON); RFC 9457 says an absent type means about:blank, so we send that explicitly.
+        assertThat(body.getType()).hasToString("about:blank");
     }
 
     @Test
@@ -58,6 +61,7 @@ class GlobalExceptionHandlerTest {
         ProblemDetail body = response.getBody();
         assertThat(body).isNotNull();
         assertThat(body.getProperties()).containsEntry("code", "internal-error");
+        assertThat(body.getType()).hasToString("about:blank");
         assertThat(body.getProperties()).containsEntry("requestId", "test-req-999");
     }
 }
