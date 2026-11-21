@@ -7,7 +7,7 @@
   <parent>
     <groupId>io.github.chakrabartyaditi2002.flakewatch</groupId>
     <artifactId>flakewatch-parent</artifactId>
-    <version>0.1.0</version>
+    <version>0.1.1</version>
   </parent>
 
   <artifactId>server</artifactId>
@@ -129,6 +129,9 @@
         <artifactId>maven-failsafe-plugin</artifactId>
         <configuration>
           <classesDirectory>${project.build.outputDirectory}</classesDirectory>
+          <systemPropertyVariables>
+            <flakewatch.expectedVersion>${project.version}</flakewatch.expectedVersion>
+          </systemPropertyVariables>
         </configuration>
       </plugin>
       <plugin>
@@ -137,6 +140,7 @@
         <executions>
           <execution>
             <goals>
+              <goal>build-info</goal>
               <goal>repackage</goal>
             </goals>
           </execution>

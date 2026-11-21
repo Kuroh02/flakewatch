@@ -29,7 +29,7 @@ class VersionControllerTest {
     void getVersionReturnsBuildInfo() throws Exception {
         mockMvc.perform(get("/api/v1/version"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.version").value("0.1.0-SNAPSHOT"))
+                .andExpect(jsonPath("$.version").value("dev"))
                 .andExpect(jsonPath("$.commit").isString())
                 .andExpect(jsonPath("$.builtAt").value("2026-11-13T12:00:00Z"));
     }

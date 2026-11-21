@@ -24,7 +24,7 @@ public class VersionController {
     public VersionResponse getVersion() {
         String version = (buildProperties != null && buildProperties.getVersion() != null)
                 ? buildProperties.getVersion()
-                : "0.1.0-SNAPSHOT";
+                : "dev";
         String commit = (buildProperties != null && buildProperties.get("commit") != null)
                 ? buildProperties.get("commit")
                 : System.getenv().getOrDefault("GIT_COMMIT", "dev");
