@@ -82,6 +82,18 @@
           <targetTests>
             <param>io.github.chakrabartyaditi2002.flakewatch.*</param>
           </targetTests>
+          <!-- NFR-QUAL-001: at least 75% of mutants must be killed. -->
+          <mutationThreshold>75</mutationThreshold>
+          <!-- Property tests use a fixed seed under PIT, so a mutant's result can't depend on luck. -->
+          <jvmArgs>
+            <value>-Dprops.seed=20261121</value>
+          </jvmArgs>
+          <outputFormats>
+            <param>XML</param>
+            <param>HTML</param>
+          </outputFormats>
+          <timestampedReports>false</timestampedReports>
+          <threads>4</threads>
         </configuration>
       </plugin>
     </plugins>

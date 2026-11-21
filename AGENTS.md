@@ -35,7 +35,7 @@ This file is for AI coding assistants (Claude Code, Copilot, Codex, Cursor and o
 | Java build, all tests | `./mvnw verify` |
 | Java formatting | `./mvnw spotless:apply` |
 | Core only, fast | `./mvnw -pl core test` |
-| Mutation tests | `./mvnw -pl core pitest:mutationCoverage` |
+| Mutation tests (fails below 75%) | `./mvnw -pl core test-compile org.pitest:pitest-maven:mutationCoverage` then `node scripts/pit-report.mjs` |
 | Replay a property-test failure | `./mvnw -pl core test -Dprops.seed=<seed>` |
 | Web | `npm --prefix web run lint && npm --prefix web test && npm --prefix web run build` |
 | Regenerate API types | `npm --prefix web run gen:api` |
