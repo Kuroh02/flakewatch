@@ -16,14 +16,14 @@ This is the single, ordered checklist for building v1. Work top to bottom.
 Before starting a phase, re-read the spec sections and plan sections it lists.
 
 
-## Status (2026-11-16): slim M1
+## Status (2026-11-21): M1 released as v0.1.0
 
-The plan was cut down to the parts that make a working live demo; see [PLAN §25](PLAN.md#25-complexity-and-exceptions) for every deviation and why.
+The plan was cut down to the parts that make a working live demo; see [PLAN §25](PLAN.md#25-complexity-and-exceptions) for every deviation and why. The live demo has run since 2026-11-16, and `v0.1.0` was released on 2026-11-21.
 
 - **Built:** the core logic (parser, detection, fingerprints), the upload API, the job queue, processing, detection, the read APIs, the dashboard, and the GitHub Action.
 - **Partly done:** tasks with a *Status* line below say exactly what's left.
 - **Deferred:** Phases 5–7 (sign-in, quarantine, performance work), plus rate limits, metrics and the runbook. They stay in this list, unticked, so nothing is lost.
-- **Next:** get CI green on the branch, then follow [GO-LIVE.md](GO-LIVE.md).
+- **Next:** close the partly done M1 tasks (browser tests, mutation testing), then M2.
 
 ---
 
@@ -49,8 +49,8 @@ The plan was cut down to the parts that make a working live demo; see [PLAN §25
 - [x] **T-0.10** `web/`: Vite + React + TypeScript (strict), ESLint, Prettier, Vitest. One placeholder page that shows `/api/v1/version`. Vite dev-server proxy for `/api`.
 - [x] **T-0.11** Multi-stage `Dockerfile` (non-root, layered jar, `HEALTHCHECK`), `compose.yaml` (app + PostgreSQL 17) and `.env.example`. Check that the README quickstart works from a fresh clone. — NFR-OPS-001
 - [x] **T-0.12** `ci.yml` with jobs `docs`, `java`, `web` and `image` (build + Trivy scan). Add caching, minimal `permissions:`, actions pinned by SHA, and cancel-in-progress for the same branch. — NFR-SEC-005, NFR-OPS-002
-- [ ] **T-0.13** Production: create the Neon project and the Render service (PLAN §21.3). `deploy.yml`: push `ghcr.io/<you>/flakewatch:<sha>` → trigger Render → wait until `/api/v1/version` returns the SHA → smoke test → roll back to the previous SHA on failure. — NFR-OPS-002
-  - *Status:* Workflow done (and now passes the commit into the image). Still to do: create Neon and Render and add the secrets — see [GO-LIVE.md](GO-LIVE.md).
+- [x] **T-0.13** Production: create the Neon project and the Render service (PLAN §21.3). `deploy.yml`: push `ghcr.io/<you>/flakewatch:<sha>` → trigger Render → wait until `/api/v1/version` returns the SHA → smoke test → roll back to the previous SHA on failure. — NFR-OPS-002
+  - *Status:* Live since 2026-11-16 on Neon and Render. Merging to `main` deploys automatically and checks the new SHA (verified with PR #20). The roll-back path has not been exercised yet.
 
 ### Contract and spikes
 
@@ -63,8 +63,8 @@ The plan was cut down to the parts that make a working live demo; see [PLAN §25
 
 ### Exit criteria
 
-- [ ] The live URL returns the deployed commit SHA from `/api/v1/version`.
-- [ ] CI is green with all jobs required by branch protection.
+- [x] The live URL returns the deployed commit SHA from `/api/v1/version`.
+- [x] CI is green with all jobs required by branch protection.
 - [x] Spikes S-1, S-2, S-3, S-5 and S-6 are recorded, and fixture files are committed.
 
 ---
@@ -232,14 +232,14 @@ The plan was cut down to the parts that make a working live demo; see [PLAN §25
   - *Status:* Partly done (Hikari idle settings, JVM flags). Security headers and `synthetic.yml` deferred.
 - [ ] **T-4.11** Write `docs/RUNBOOK.md`: deploy, roll back, rotate tokens and secrets, reprocess `DEAD` jobs, inspect the queue, notes on restoring the database. — NFR-OPS-002
   - *Status:* Deferred: [GO-LIVE.md](GO-LIVE.md) covers first deploy; a full runbook comes later.
-- [ ] **T-4.12** README: live link, screenshots or a GIF, "how it works", the architecture diagram, local quickstart. Tag `v0.1.0`. — NFR-OPS-001
-  - *Status:* README updated. Tag `v0.1.0` once the live demo works.
+- [x] **T-4.12** README: live link, screenshots or a GIF, "how it works", the architecture diagram, local quickstart. Tag `v0.1.0`. — NFR-OPS-001
+  - *Status:* README rewritten for engineers (PR #20). `v0.1.0` tagged and released on 2026-11-21.
 
 ### Exit criteria (M1: Live demo)
 
-- [ ] Demo data has been flowing for at least 48 hours, and SC-06 holds on the demo project.
-- [ ] Flakewatch's own CI results appear on its own dashboard.
-- [ ] `node scripts/check-docs.mjs` passes. `v0.1.0` is released.
+- [x] Demo data has been flowing for at least 48 hours, and SC-06 holds on the demo project.
+- [x] Flakewatch's own CI results appear on its own dashboard.
+- [x] `node scripts/check-docs.mjs` passes. `v0.1.0` is released.
 
 ---
 

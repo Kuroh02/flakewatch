@@ -42,7 +42,7 @@ Add one step after your tests:
 ```yaml
 - name: Upload test results to Flakewatch
   if: ${{ !cancelled() }}   # also run when tests failed: that's the point
-  uses: Kuroh02/flakewatch/action@main
+  uses: Kuroh02/flakewatch/action@action-v1
   with:
     server-url: ${{ vars.FLAKEWATCH_URL }}
     token: ${{ secrets.FLAKEWATCH_INGEST_TOKEN }}
@@ -152,7 +152,7 @@ docs/       design, decisions and planning documents
 
 ## Status and roadmap
 
-**v0.1 (live):** uploads, detection, failure groups, the dashboard and the GitHub Action.
+**v0.1.0 (live, [release notes](CHANGELOG.md)):** uploads, detection, failure groups, the dashboard and the GitHub Action.
 
 **Next, v1.0:** GitHub sign-in and self-service projects, then **quarantine**: a JUnit 5 extension
 and a TestNG listener that stop known-flaky tests from failing builds while Flakewatch keeps
