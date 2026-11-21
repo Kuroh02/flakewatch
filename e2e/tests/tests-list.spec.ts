@@ -24,13 +24,13 @@ test.describe('US-03: ranked list of flaky tests', () => {
     await page.goto(project('/tests?sort=name'));
     const rows = page.locator('tbody tr');
     await expect(rows).toHaveCount(50);
-    const firstOnPageOne = await rows.first().innerText();
+    const firstOnPageOne = (await rows.first().textContent()) ?? '';
 
     await page.getByRole('link', { name: 'Next page →' }).click();
     await expect(page).toHaveURL(/cursor=/);
     // Wait for page 2's rows to replace page 1's before reading them.
     await expect(rows.first()).not.toHaveText(firstOnPageOne);
-    const secondPage = await rows.allInnerTexts();
+    const secondPage = await rows.allTextContents();
     expect(secondPage.length).toBeGreaterThan(0);
     expect(secondPage.length).toBeLessThan(50);
 
