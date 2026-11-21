@@ -197,10 +197,10 @@ The plan was cut down to the parts that make a working live demo; see [PLAN §25
 - [x] **T-3.8** Runs list and run detail pages, with labelled failures. — FR-UI-004
 - [x] **T-3.9** Failure group pages. — FR-UI-005
 - [x] **T-3.10** Dark mode, a responsive layout that works at 360 px wide, visible focus styles, reduced motion. — NFR-A11Y-001
-- [ ] **T-3.11** End-to-end setup in `e2e/`: start the compose stack, seed it by uploading fixtures through the API, and write Playwright journeys for US-02, US-03, US-04, US-05 and US-09. Run an axe scan on every page, failing on serious or critical issues. Add the CI `e2e` job. — NFR-A11Y-001, FR-UI-007
-  - *Status:* Journeys were checked in Chromium against a contract-shaped fake API during development. Still to do: commit them as the `e2e/` Playwright suite with axe.
+- [x] **T-3.11** End-to-end setup in `e2e/`: start the compose stack, seed it by uploading fixtures through the API, and write Playwright journeys for US-02, US-03, US-04, US-05 and US-09. Run an axe scan on every page, failing on serious or critical issues. Add the CI `e2e` job. — NFR-A11Y-001, FR-UI-007
+  - *Status:* Done 2026-11-21: 18 journeys (3 also at phone size), axe on every page, CI `e2e` job uploading its own results. Its first runs found a deadlock between re-check jobs (fixed in PR #26). Still open: the `package-lock.json` (PLAN §25) and the nightly all-browser run.
 - [ ] **T-3.12** XSS check: a test named `<img src=x onerror=alert(1)>` renders as plain text. Add a lint rule banning `dangerouslySetInnerHTML`. — NFR-SEC-006
-  - *Status:* React escapes all text and nothing uses `dangerouslySetInnerHTML`. Still to do: the lint rule and the XSS test.
+  - *Status:* React escapes all text and nothing uses `dangerouslySetInnerHTML`. The XSS test is in the e2e suite (`tests-list.spec.ts`). Still to do: the lint rule.
 - [ ] **T-3.13** Serve the SPA from Spring: static files, history fallback for client routes, long cache headers for hashed assets. — NFR-OPS-001
   - *Status:* History fallback done. Still to do: long cache headers for hashed assets.
 

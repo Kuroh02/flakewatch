@@ -41,7 +41,7 @@ This file is for AI coding assistants (Claude Code, Copilot, Codex, Cursor and o
 | Regenerate API types | `npm --prefix web run gen:api` |
 | Action (no dependencies, no build step) | `npm --prefix action test` |
 | Local stack | `docker compose up --build` |
-| E2E | `npm --prefix e2e test` |
+| E2E (needs the compose stack; see e2e/README.md) | `FW_E2E_TOKEN=<token> npm --prefix e2e test` |
 
 ## 4. Conventions
 
