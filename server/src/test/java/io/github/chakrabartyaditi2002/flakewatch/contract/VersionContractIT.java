@@ -1,6 +1,8 @@
 package io.github.chakrabartyaditi2002.flakewatch.contract;
 
 import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 
 import com.atlassian.oai.validator.restassured.OpenApiValidationFilter;
@@ -58,5 +60,21 @@ class VersionContractIT {
                 .body("version", notNullValue())
                 .body("commit", notNullValue())
                 .body("builtAt", notNullValue());
+    }
+
+    @Test
+    @DisplayName("NFR-OPS-001: GET /api/v1/version reports the version the build was made from")
+    void versionComesFromTheBuild() {
+        // Maven (failsafe) passes in ${project.version}. A release must report its own version,
+        // not a placeholder, so the live site shows which release is running.
+        String expected = System.getProperty("flakewatch.expectedVersion");
+        assertThat(expected).as("run through Maven: failsafe sets flakewatch.expectedVersion").isNotBlank();
+
+        given()
+                .when()
+                .get("/api/v1/version")
+                .then()
+                .statusCode(200)
+                .body("version", equalTo(expected));
     }
 }

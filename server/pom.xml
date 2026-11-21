@@ -129,6 +129,9 @@
         <artifactId>maven-failsafe-plugin</artifactId>
         <configuration>
           <classesDirectory>${project.build.outputDirectory}</classesDirectory>
+          <systemPropertyVariables>
+            <flakewatch.expectedVersion>${project.version}</flakewatch.expectedVersion>
+          </systemPropertyVariables>
         </configuration>
       </plugin>
       <plugin>
