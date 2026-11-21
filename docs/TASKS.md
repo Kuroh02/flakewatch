@@ -234,6 +234,7 @@ The plan was cut down to the parts that make a working live demo; see [PLAN §25
   - *Status:* Deferred: [GO-LIVE.md](GO-LIVE.md) covers first deploy; a full runbook comes later.
 - [x] **T-4.12** README: live link, screenshots or a GIF, "how it works", the architecture diagram, local quickstart. Tag `v0.1.0`. — NFR-OPS-001
   - *Status:* README rewritten for engineers (PR #20). `v0.1.0` tagged and released on 2026-11-21.
+- [x] **T-4.13** `release-image.yml`: a `vX.Y.Z` tag publishes `ghcr.io/<you>/flakewatch:X.Y.Z` (and `:X.Y`) by re-tagging the image already deployed for that commit, without rebuilding it. — NFR-OPS-001
 
 ### Exit criteria (M1: Live demo)
 

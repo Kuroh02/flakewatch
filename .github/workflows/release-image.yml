@@ -1,0 +1,79 @@
+name: Release image
+
+# Publishes the Docker image for a release, for example ghcr.io/kuroh02/flakewatch:0.1.0
+# (and :0.1). Nothing is rebuilt: the release tag points at the exact image that passed
+# CI and was deployed from main, found by its commit SHA.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to publish the image for, for example v0.1.0
+        required: true
+
+concurrency:
+  group: release-image
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    name: Publish the release image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Work out the version and its commit
+        id: meta
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          set -euo pipefail
+          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::'$TAG' is not a release tag like v1.2.3"
+            exit 1
+          fi
+          version="${TAG#v}"
+          {
+            echo "sha=$(gh api "repos/$REPO/commits/$TAG" --jq .sha)"
+            echo "version=$version"
+            echo "minor=${version%.*}"
+            echo "image=ghcr.io/${REPO,,}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Tag the deployed image with the version
+        env:
+          IMAGE: ${{ steps.meta.outputs.image }}
+          SHA: ${{ steps.meta.outputs.sha }}
+          VERSION: ${{ steps.meta.outputs.version }}
+          MINOR: ${{ steps.meta.outputs.minor }}
+        run: |
+          set -euo pipefail
+          if ! docker buildx imagetools inspect "$IMAGE:$SHA" > /dev/null; then
+            echo "::error::No image for commit $SHA. Release tags must point at a commit that was merged to main and deployed."
+            exit 1
+          fi
+          docker buildx imagetools create --tag "$IMAGE:$VERSION" --tag "$IMAGE:$MINOR" "$IMAGE:$SHA"
+          {
+            echo "### Published \`$IMAGE:$VERSION\`"
+            echo
+            echo "Same image as \`$IMAGE:$SHA\` (also tagged \`$MINOR\`)."
+            echo
+            echo '```bash'
+            echo "docker pull $IMAGE:$VERSION"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
