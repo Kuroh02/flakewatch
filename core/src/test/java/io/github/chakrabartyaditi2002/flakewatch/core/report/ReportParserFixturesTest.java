@@ -117,4 +117,30 @@ class ReportParserFixturesTest {
         assertThat(failing.status()).isEqualTo(FAILED);
         assertThat(failing.message()).startsWith("Error: expect(received).toBe(expected)");
     }
+
+    @Test
+    @DisplayName("FR-ING-005: only a test that failed and was then run again counts as retried")
+    void retriedMeansRunAgainAfterAFailure() {
+        // Surefire with rerunFailingTestsCount: failures were re-run, passes were not.
+        ParseResult surefire = Fixtures.parse("maven-surefire/TEST-sample.SampleTest.xml");
+        assertThat(named(surefire, "testFlaky").wasRetried()).isTrue();
+        assertThat(named(surefire, "testFailing").wasRetried()).isTrue();
+        assertThat(named(surefire, "testPassing").wasRetried()).isFalse();
+
+        // Playwright without retries: a plain failure ran once, so it was not retried.
+        ParseResult playwright = Fixtures.parse("playwright/results.xml");
+        assertThat(named(playwright, "failing test").executions()).hasSize(1);
+        assertThat(named(playwright, "failing test").wasRetried()).isFalse();
+
+        // Gradle's test-retry plugin repeats the entry; a case that passed both times wasn't a retry
+        // of a failure.
+        ParseResult gradle = Fixtures.parse("gradle/TEST-sample.SampleGradleTest.xml");
+        assertThat(named(gradle, "[2] \"beta\"").wasRetried()).isTrue();
+        assertThat(named(gradle, "[1] \"alpha\"").executions()).hasSize(2);
+        assertThat(named(gradle, "[1] \"alpha\"").wasRetried()).isFalse();
+    }
+
+    private static ParsedTestCase named(ParseResult result, String name) {
+        return result.testCases().stream().filter(t -> t.name().equals(name)).findFirst().orElseThrow();
+    }
 }

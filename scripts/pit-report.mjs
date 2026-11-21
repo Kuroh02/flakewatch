@@ -16,7 +16,7 @@ try {
 
 const field = (block, name) => {
   const m = block.match(new RegExp(`<${name}>([\\s\\S]*?)</${name}>`));
-  return m ? m[1].replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&') : '';
+  return m ? m[1].replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&') : '';
 };
 
 const mutants = [...xml.matchAll(/<mutation\b([^>]*)>([\s\S]*?)<\/mutation>/g)].map(([, attrs, body]) => ({

@@ -40,6 +40,25 @@ class TestKeysTest {
         assertThat(a).matches(".*~[0-9a-f]{8}");
     }
 
+    @Test
+    @DisplayName("FR-ING-010: a key of exactly 2,000 characters is kept as it is; one more character is capped")
+    void capStartsAfterTheLimit() {
+        String suite = "S";
+        String atLimit = "x".repeat(TestKeys.MAX_KEY_LENGTH - suite.length() - 1);
+        assertThat(TestKeys.testKey(suite, atLimit)).isEqualTo(suite + "#" + atLimit);
+
+        String overLimit = TestKeys.testKey(suite, atLimit + "y");
+        assertThat(overLimit).hasSize(TestKeys.MAX_KEY_LENGTH).matches(".*~[0-9a-f]{8}");
+    }
+
+    @Test
+    @DisplayName("FR-ING-010: the database key hash is a SHA-256 that is equal only for equal test keys")
+    void keyHash() {
+        byte[] a = TestKeys.keyHash("com.shop.CartTest#addsItem");
+        assertThat(a).hasSize(32).isEqualTo(TestKeys.keyHash("com.shop.CartTest#addsItem"));
+        assertThat(a).isNotEqualTo(TestKeys.keyHash("com.shop.CartTest#removesItem"));
+    }
+
     private static final Generator<String> NAMES = Gens.strings(0, 40, "abcXYZ019 ()[]#.,\t\n\"");
 
     @Test
