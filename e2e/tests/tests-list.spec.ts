@@ -22,12 +22,17 @@ test.describe('US-03: ranked list of flaky tests', () => {
 
   test('US-03 #3 / FR-UI-007: more than 50 tests page, and the URL restores the exact view', async ({ page }) => {
     await page.goto(project('/tests?sort=name'));
-    await expect(page.locator('tbody tr')).toHaveCount(50);
+    const rows = page.locator('tbody tr');
+    await expect(rows).toHaveCount(50);
+    const firstOnPageOne = await rows.first().innerText();
 
     await page.getByRole('link', { name: 'Next page →' }).click();
     await expect(page).toHaveURL(/cursor=/);
-    await expect(page.locator('tbody tr').first()).toBeVisible();
-    const secondPage = await page.locator('tbody tr').allInnerTexts();
+    // Wait for page 2's rows to replace page 1's before reading them.
+    await expect(rows.first()).not.toHaveText(firstOnPageOne);
+    const secondPage = await rows.allInnerTexts();
+    expect(secondPage.length).toBeGreaterThan(0);
+    expect(secondPage.length).toBeLessThan(50);
 
     // Share the link: a fresh page with the same URL shows the same tests and the same sort.
     const shared = await page.context().newPage();
