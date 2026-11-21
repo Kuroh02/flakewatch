@@ -37,7 +37,7 @@
     <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
     <spotless.version>2.44.3</spotless.version>
     <jacoco.version>0.8.13</jacoco.version>
-    <pitest.version>1.17.4</pitest.version>
+    <pitest.version>1.30.2</pitest.version>
   </properties>
 
   <dependencyManagement>
