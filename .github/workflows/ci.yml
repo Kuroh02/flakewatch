@@ -103,6 +103,62 @@ jobs:
       - name: Test the upload action
         run: npm --prefix action test
 
+  e2e:
+    name: End-to-end and Accessibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Start the app and its database (docker compose)
+        run: |
+          cp .env.example .env
+          docker compose up --detach --build --wait --wait-timeout 300
+
+      - name: Create the e2e projects
+        run: |
+          # Bootstrap prints each project's ingest token once. Mask it before anything else can
+          # print it; it only exists in this throwaway database.
+          out=$(docker compose run --rm -e FLAKEWATCH_WORKERS=0 app \
+            --flakewatch.bootstrap.project=e2e --flakewatch.bootstrap.visibility=PUBLIC)
+          token=$(grep -oE 'fw_ing_[A-Za-z0-9]+' <<<"$out" | head -n 1)
+          if [ -z "$token" ]; then echo "::error::Bootstrap printed no token."; exit 1; fi
+          echo "::add-mask::$token"
+          echo "FW_E2E_TOKEN=$token" >> "$GITHUB_ENV"
+          docker compose run --rm -e FLAKEWATCH_WORKERS=0 app \
+            --flakewatch.bootstrap.project=e2e-hidden --flakewatch.bootstrap.visibility=PRIVATE > /dev/null
+
+      - name: Set up Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: '24'
+
+      - name: Install Playwright and Chromium
+        working-directory: e2e
+        run: |
+          if [ -f package-lock.json ]; then npm ci; else npm install --no-audit --no-fund; fi
+          npx playwright install --with-deps chromium
+
+      - name: Run the journeys (seeds the app through the upload API first)
+        working-directory: e2e
+        env:
+          E2E_BASE_URL: http://localhost:8080
+        run: npm test
+
+      - name: Show the app's logs
+        if: failure()
+        run: docker compose logs app --tail 200
+
+      - name: Upload our own test results to Flakewatch
+        if: ${{ !cancelled() }}
+        uses: ./action
+        with:
+          server-url: ${{ vars.FLAKEWATCH_URL }}
+          token: ${{ secrets.FLAKEWATCH_SELF_INGEST_TOKEN }}
+          files: e2e/test-results/junit.xml
+          job-key: e2e
+
   image:
     name: Container Image & Security Scan
     runs-on: ubuntu-latest

@@ -1,0 +1,13 @@
+{
+  "name": "flakewatch-e2e",
+  "private": true,
+  "description": "End-to-end and accessibility tests: Playwright against the real app (docker compose), seeded through the upload API.",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@playwright/test": "1.65.1"
+  }
+}
