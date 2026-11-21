@@ -78,7 +78,10 @@ public class DetectionService {
         Map<Long, List<Execution>> executions = statuses.executionsInWindow(testIds, windowStart);
         Map<Long, String> current = statuses.currentStatuses(testIds);
         int changes = 0;
-        for (Long testId : testIds) {
+        // Ascending id order: each save locks its row until the job's transaction commits, and two
+        // jobs that lock overlapping rows in the same order wait for each other instead of
+        // deadlocking.
+        for (Long testId : testIds.stream().sorted().distinct().toList()) {
             Classification c = Classifier.classify(
                     executions.getOrDefault(testId, List.of()), settings, now, project.defaultBranch());
             String before = current.get(testId);
