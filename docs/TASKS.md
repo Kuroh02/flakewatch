@@ -146,8 +146,8 @@ The plan was cut down to the parts that make a working live demo; see [PLAN §25
 - [x] **T-2.4** Implement evidence (`RETRY_PASS`, `SAME_COMMIT_MIXED`) with explanations, keeping the 5 most recent. — FR-DET-002, FR-DET-003, FR-DET-007
 - [x] **T-2.5** Implement rules 1–6 with settings, and combine variants in attention order. — FR-DET-001, FR-DET-004, FR-DET-005
 - [x] **T-2.6** Impact and flip rate. — FR-DET-012
-- [ ] **T-2.7** Run PIT on `core` and raise the mutation score to ≥ 75%. Add the CI `mutation` job. — NFR-QUAL-001
-  - *Status:* Not verified yet: PIT has not been run on the new `core` code. Run it and add the CI job.
+- [x] **T-2.7** Run PIT on `core` and raise the mutation score to ≥ 75%. Add the CI `mutation` job. — NFR-QUAL-001
+  - *Status:* Done 2026-11-21. First measured at 73% (274 of 373); tests added for re-encoded reports, retry counting, settings limits and key edges brought it to 80% (297 of 373). CI fails below 75%. PIT was upgraded to 1.30.2 to read Java 25 classes.
 
 ### Fingerprinting (`core`)
 

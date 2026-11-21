@@ -62,6 +62,46 @@ jobs:
           files: '**/target/*-reports/TEST-*.xml'
           job-key: java
 
+  mutation:
+    name: Mutation Testing (core)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+
+      - name: Check whether core changed
+        id: changes
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          # Pull requests run PIT only when the detection logic or the build could change the
+          # result. Pushes to main always run it, so main's score is always known.
+          if [ -z "$BASE" ] || git diff --name-only "$BASE" HEAD | grep -qE '^(core/|pom\.xml$|\.github/workflows/ci\.yml$|scripts/pit-report\.mjs$)'; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "core/ is unchanged; skipping mutation testing." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Set up Temurin JDK 25
+        if: steps.changes.outputs.run == 'true'
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # v4.7.0
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Run PIT on core (fails below 75%)
+        if: steps.changes.outputs.run == 'true'
+        run: ./mvnw -B -pl core test-compile org.pitest:pitest-maven:mutationCoverage
+
+      - name: Show the mutants the tests missed
+        if: ${{ !cancelled() && steps.changes.outputs.run == 'true' }}
+        run: node scripts/pit-report.mjs core/target/pit-reports/mutations.xml
+
   web:
     name: Web Frontend
     runs-on: ubuntu-latest
