@@ -5,6 +5,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-21
+
+### Fixed
+
+- `/api/v1/version` reports the version and build time of the running build. It used to show a placeholder (`0.1.0-SNAPSHOT`) and the time of the request.
+
+### Added
+
+- Each release tag publishes the Docker image as `ghcr.io/kuroh02/flakewatch:<version>`.
+
 ## [0.1.0] - 2026-11-21
 
 First release: the M1 live demo.
@@ -23,5 +33,6 @@ First release: the M1 live demo.
 - Project documentation: constitution, product spec, implementation plan, task list, detection rules, data model, API contract, ADRs 0001–0009, workflow guide, templates, and the first feature spec (`specs/001-ci-feedback`).
 - `scripts/check-docs.mjs`: requirement traceability and link checker.
 
-[Unreleased]: https://github.com/Kuroh02/flakewatch/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Kuroh02/flakewatch/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/Kuroh02/flakewatch/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Kuroh02/flakewatch/releases/tag/v0.1.0
